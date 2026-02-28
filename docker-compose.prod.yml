@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: colibri-frontend
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_URL=http://backend:3001
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: colibri-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - DYNAMODB_TABLE=${DYNAMODB_TABLE:-ColibriDataZone}
+      - JWT_SECRET=${JWT_SECRET:-your-production-secret}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  default:
+    name: colibri-network
