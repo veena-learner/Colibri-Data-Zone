@@ -10,6 +10,7 @@ import type {
   LineageGraph,
   DashboardStats,
   User,
+  IngestionStatus,
 } from '../types';
 
 const api = axios.create({
@@ -62,6 +63,23 @@ export const authApi = {
 
   getMe: async (): Promise<{ id: string; email: string; name: string; role: string }> => {
     const { data } = await api.get<ApiResponse<{ id: string; email: string; name: string; role: string }>>('/auth/me');
+    return data.data!;
+  },
+};
+
+export const sourceTablesApi = {
+  list: async (params?: {
+    sourceSystem?: string;
+    domainId?: string;
+    ingestionStatus?: IngestionStatus;
+    search?: string;
+  }): Promise<DataAsset[]> => {
+    const { data } = await api.get<ApiResponse<DataAsset[]>>('/assets/source-tables', { params });
+    return data.data || [];
+  },
+
+  updateMapping: async (id: string, updates: Partial<DataAsset>): Promise<DataAsset> => {
+    const { data } = await api.put<ApiResponse<DataAsset>>(`/assets/${id}`, updates);
     return data.data!;
   },
 };

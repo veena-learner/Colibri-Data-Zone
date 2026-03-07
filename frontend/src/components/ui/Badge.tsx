@@ -31,6 +31,7 @@ const typeColors: Record<AssetType, string> = {
   RDS: 'bg-blue-100 text-blue-800',
   Glue: 'bg-cyan-100 text-cyan-800',
   Athena: 'bg-indigo-100 text-indigo-800',
+  OLTP: 'bg-emerald-100 text-emerald-800',
   Other: 'bg-gray-100 text-gray-800',
 };
 

@@ -7,11 +7,13 @@ import {
   GitBranch,
   Settings,
   LogOut,
+  Table2,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/source-tables', icon: Table2, label: 'Source Tables' },
   { to: '/assets', icon: Database, label: 'Data Catalog' },
   { to: '/domains', icon: FolderTree, label: 'Domains' },
   { to: '/glossary', icon: BookOpen, label: 'Glossary' },

@@ -5,11 +5,20 @@ export interface User {
   role: UserRole;
 }
 
-export type UserRole = 'Admin' | 'DataOwner' | 'DataSteward' | 'Analyst' | 'Viewer';
+export type UserRole = 'Admin' | 'ProductManager' | 'DataOwner' | 'DataSteward' | 'Analyst' | 'Viewer';
 
 export type SensitivityLevel = 'Public' | 'Internal' | 'Confidential' | 'Restricted';
 
-export type AssetType = 'S3' | 'Redshift' | 'RDS' | 'Glue' | 'Athena' | 'Other';
+export type AssetType = 'S3' | 'Redshift' | 'RDS' | 'Glue' | 'Athena' | 'OLTP' | 'Other';
+
+export type IngestionStatus = 'Pending' | 'InProgress' | 'DBTReady' | 'Completed' | 'Failed';
+
+export interface TargetTableMapping {
+  targetTableName: string;
+  targetSchema: string;
+  dbtModelName?: string;
+  transformationNotes?: string;
+}
 
 export interface SchemaField {
   name: string;
@@ -25,6 +34,7 @@ export interface DataAsset {
   description: string;
   type: AssetType;
   location: string;
+  source?: string;
   format?: string;
   schema?: SchemaField[];
   domainId: string;
@@ -34,6 +44,10 @@ export interface DataAsset {
   tags: string[];
   glossaryTermIds: string[];
   metadata?: Record<string, string>;
+  sourceSystem?: string;
+  sourceTableName?: string;
+  ingestionStatus?: IngestionStatus;
+  targetRedshiftTables?: TargetTableMapping[];
   createdAt: string;
   updatedAt: string;
 }

@@ -1,4 +1,4 @@
-import { SensitivityLevel, AssetType, UserRole } from '../config/constants';
+import { SensitivityLevel, AssetType, UserRole, IngestionStatus } from '../config/constants';
 
 export interface BaseEntity {
   PK: string;
@@ -7,12 +7,20 @@ export interface BaseEntity {
   updatedAt: string;
 }
 
+export interface TargetTableMapping {
+  targetTableName: string;
+  targetSchema: string;
+  dbtModelName?: string;
+  transformationNotes?: string;
+}
+
 export interface DataAsset extends BaseEntity {
   id: string;
   name: string;
   description: string;
   type: AssetType;
   location: string;
+  source?: string;
   format?: string;
   schema?: SchemaField[];
   domainId: string;
@@ -22,6 +30,10 @@ export interface DataAsset extends BaseEntity {
   tags: string[];
   glossaryTermIds: string[];
   metadata?: Record<string, string>;
+  sourceSystem?: string;
+  sourceTableName?: string;
+  ingestionStatus?: IngestionStatus;
+  targetRedshiftTables?: TargetTableMapping[];
 }
 
 export interface SchemaField {

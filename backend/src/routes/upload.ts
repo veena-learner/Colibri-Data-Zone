@@ -15,6 +15,7 @@ interface ExcelRow {
   name: string;
   description: string;
   type: string;
+  source?: string;
   location: string;
   domainId: string;
   dataOwnerId?: string;
@@ -97,6 +98,7 @@ router.post(
             name: row.name,
             description: row.description,
             type: assetType,
+            source: row.source,
             location: row.location,
             format: row.format,
             domainId: row.domainId,
@@ -143,6 +145,7 @@ router.get('/template', async (req: AuthRequest, res: Response): Promise<void> =
         name: 'Example Asset',
         description: 'Description of the data asset',
         type: 'S3',
+        source: 'Fivetran',
         location: 's3://bucket/path/',
         domainId: 'domain-1',
         dataOwnerId: 'user-dataowner-1',

@@ -13,6 +13,8 @@ import {
   User as UserIcon,
   Calendar,
   MapPin,
+  Database,
+  ArrowRight,
 } from 'lucide-react';
 import { Header } from '../components/Layout/Header';
 import { Card } from '../components/ui/Card';
@@ -22,14 +24,14 @@ import { Modal } from '../components/ui/Modal';
 import { assetsApi, domainsApi, lineageApi, glossaryApi, usersApi } from '../services/api';
 import type { DataAsset, AssetType, SensitivityLevel, User } from '../types';
 
-const ASSET_TYPES: AssetType[] = ['S3', 'Redshift', 'RDS', 'Glue', 'Athena', 'Other'];
+const ASSET_TYPES: AssetType[] = ['S3', 'Redshift', 'RDS', 'Glue', 'Athena', 'OLTP', 'Other'];
 const SENSITIVITY_LEVELS: SensitivityLevel[] = ['Public', 'Internal', 'Confidential', 'Restricted'];
 
 export function AssetDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'schema' | 'lineage' | 'governance' | 'glossary'>('schema');
+  const [activeTab, setActiveTab] = useState<'schema' | 'lineage' | 'governance' | 'glossary' | 'targetMapping'>('schema');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
@@ -116,7 +118,17 @@ export function AssetDetailPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+          {asset.source && (
+            <Card>
+              <div className="flex items-center gap-3 mb-4">
+                <ExternalLink className="w-5 h-5 text-gray-400" />
+                <span className="text-sm font-medium text-gray-500">Source</span>
+              </div>
+              <p className="text-sm text-gray-900">{asset.source}</p>
+            </Card>
+          )}
+
           <Card>
             <div className="flex items-center gap-3 mb-4">
               <MapPin className="w-5 h-5 text-gray-400" />
@@ -157,6 +169,7 @@ export function AssetDetailPage() {
                 { id: 'lineage', label: 'Lineage', icon: GitBranch },
                 { id: 'governance', label: 'Governance', icon: Shield },
                 { id: 'glossary', label: 'Glossary', icon: BookOpen },
+                ...(asset.type === 'OLTP' ? [{ id: 'targetMapping', label: 'Target Mapping', icon: Database }] : []),
               ].map(({ id, label, icon: Icon }) => (
                 <button
                   key={id}
@@ -186,6 +199,9 @@ export function AssetDetailPage() {
             )}
             {activeTab === 'glossary' && (
               <GlossaryTab terms={linkedTerms} />
+            )}
+            {activeTab === 'targetMapping' && (
+              <TargetMappingTab asset={asset} />
             )}
           </div>
         </Card>
@@ -478,6 +494,113 @@ function GlossaryTab({ terms }: { terms?: any[] }) {
   );
 }
 
+function TargetMappingTab({ asset }: { asset: DataAsset }) {
+  const targets = asset.targetRedshiftTables;
+
+  return (
+    <div className="space-y-6">
+      {/* Data Flow */}
+      <div>
+        <h4 className="text-sm font-medium text-gray-700 mb-3">Data Flow Pipeline</h4>
+        <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-200">
+            <Database className="w-4 h-4" />
+            <div>
+              <span className="font-medium text-sm">{asset.sourceSystem}</span>
+              <p className="text-xs text-emerald-500">{asset.sourceTableName}</p>
+            </div>
+          </div>
+          <ArrowRight className="w-5 h-5 text-gray-400" />
+          <div className="px-3 py-2 bg-blue-50 text-blue-700 rounded-lg border border-blue-200 text-sm font-medium">
+            Ingestion
+          </div>
+          <ArrowRight className="w-5 h-5 text-gray-400" />
+          <div className="px-3 py-2 bg-amber-50 text-amber-700 rounded-lg border border-amber-200 text-sm font-medium">
+            DBT
+          </div>
+          <ArrowRight className="w-5 h-5 text-gray-400" />
+          <div className="flex items-center gap-2 px-3 py-2 bg-purple-50 text-purple-700 rounded-lg border border-purple-200">
+            <Database className="w-4 h-4" />
+            <span className="font-medium text-sm">Redshift</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Source Details */}
+      <div>
+        <h4 className="text-sm font-medium text-gray-700 mb-3">Source Information</h4>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <span className="text-xs text-gray-500">Source System</span>
+            <p className="text-sm font-medium text-gray-900 mt-0.5">{asset.sourceSystem || 'N/A'}</p>
+          </div>
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <span className="text-xs text-gray-500">Source Table</span>
+            <p className="text-sm font-mono text-gray-900 mt-0.5">{asset.sourceTableName || 'N/A'}</p>
+          </div>
+          <div className="p-3 bg-gray-50 rounded-lg">
+            <span className="text-xs text-gray-500">Ingestion Status</span>
+            <p className="mt-0.5">
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                asset.ingestionStatus === 'Completed' ? 'bg-green-100 text-green-700' :
+                asset.ingestionStatus === 'InProgress' ? 'bg-blue-100 text-blue-700' :
+                asset.ingestionStatus === 'Failed' ? 'bg-red-100 text-red-700' :
+                asset.ingestionStatus === 'DBTReady' ? 'bg-amber-100 text-amber-700' :
+                'bg-gray-100 text-gray-700'
+              }`}>
+                {asset.ingestionStatus || 'Pending'}
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Target Tables */}
+      <div>
+        <h4 className="text-sm font-medium text-gray-700 mb-3">
+          Target Redshift Tables ({targets?.length || 0})
+        </h4>
+        {targets && targets.length > 0 ? (
+          <div className="space-y-3">
+            {targets.map((target, idx) => (
+              <div key={idx} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <Database className="w-4 h-4 text-purple-500" />
+                  <span className="font-mono text-sm font-medium text-gray-900">
+                    {target.targetSchema}.{target.targetTableName}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-gray-500">Schema:</span>
+                    <span className="ml-2 font-medium">{target.targetSchema}</span>
+                  </div>
+                  {target.dbtModelName && (
+                    <div>
+                      <span className="text-gray-500">DBT Model:</span>
+                      <span className="ml-2 font-mono px-1.5 py-0.5 bg-amber-50 text-amber-700 rounded text-xs">
+                        {target.dbtModelName}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {target.transformationNotes && (
+                  <p className="text-xs text-gray-500 mt-2">{target.transformationNotes}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-6 text-gray-500">
+            <Database className="w-10 h-10 mx-auto mb-2 text-gray-300" />
+            <p className="text-sm">No target Redshift tables mapped</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function EditAssetModal({
   isOpen,
   onClose,
@@ -491,6 +614,7 @@ function EditAssetModal({
     name: asset.name,
     description: asset.description,
     type: asset.type,
+    source: asset.source || '',
     location: asset.location,
     dataOwnerId: asset.dataOwnerId || '',
     dataStewardId: asset.dataStewardId || '',
@@ -548,6 +672,19 @@ function EditAssetModal({
             className="input"
             rows={3}
             required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Source
+          </label>
+          <input
+            type="text"
+            value={formData.source}
+            onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+            className="input"
+            placeholder="e.g. Fivetran, Salesforce, NetSuite"
           />
         </div>
 

@@ -3,6 +3,7 @@ import { useAuthStore } from './store/authStore';
 import { MainLayout } from './components/Layout/MainLayout';
 import { LoginPage } from './pages/Login';
 import { DashboardPage } from './pages/Dashboard';
+import { SourceTablesPage } from './pages/SourceTables';
 import { AssetsPage } from './pages/Assets';
 import { AssetDetailPage } from './pages/AssetDetail';
 import { DomainsPage } from './pages/Domains';
@@ -37,6 +38,7 @@ function App() {
         }
       >
         <Route index element={<DashboardPage />} />
+        <Route path="source-tables" element={<SourceTablesPage />} />
         <Route path="assets" element={<AssetsPage />} />
         <Route path="assets/:id" element={<AssetDetailPage />} />
         <Route path="domains" element={<DomainsPage />} />

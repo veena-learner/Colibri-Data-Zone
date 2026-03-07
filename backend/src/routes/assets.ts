@@ -11,21 +11,58 @@ router.use(authMiddleware);
 
 router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { domainId, search, limit } = req.query;
+    const { domainId, search, limit, sourceSystem, type } = req.query;
 
     let assets;
     if (search) {
       assets = await assetModel.search(search as string);
+    } else if (sourceSystem) {
+      assets = await assetModel.listBySourceSystem(sourceSystem as string);
     } else if (domainId) {
       assets = await assetModel.listByDomain(domainId as string);
     } else {
       assets = await assetModel.listAll(limit ? parseInt(limit as string) : undefined);
     }
 
+    if (type) {
+      assets = assets.filter(a => a.type === type);
+    }
+
     res.json({ success: true, data: assets });
   } catch (error) {
     console.error('List assets error:', error);
     res.status(500).json({ success: false, error: 'Failed to list assets' });
+  }
+});
+
+router.get('/source-tables', async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { sourceSystem, domainId, ingestionStatus, search } = req.query;
+
+    let tables = await assetModel.listSourceTables();
+
+    if (sourceSystem) {
+      tables = tables.filter(t => t.sourceSystem === sourceSystem);
+    }
+    if (domainId) {
+      tables = tables.filter(t => t.domainId === domainId);
+    }
+    if (ingestionStatus) {
+      tables = tables.filter(t => t.ingestionStatus === ingestionStatus);
+    }
+    if (search) {
+      const q = (search as string).toLowerCase();
+      tables = tables.filter(t =>
+        t.name.toLowerCase().includes(q) ||
+        t.description.toLowerCase().includes(q) ||
+        t.sourceTableName?.toLowerCase().includes(q)
+      );
+    }
+
+    res.json({ success: true, data: tables, total: tables.length });
+  } catch (error) {
+    console.error('List source tables error:', error);
+    res.status(500).json({ success: false, error: 'Failed to list source tables' });
   }
 });
 

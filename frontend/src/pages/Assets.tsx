@@ -24,7 +24,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { assetsApi, domainsApi, uploadApi, usersApi, BulkUploadResult, UsersByRole } from '../services/api';
 import type { DataAsset, Domain, AssetType, SensitivityLevel, User } from '../types';
 
-const ASSET_TYPES: AssetType[] = ['S3', 'Redshift', 'RDS', 'Glue', 'Athena', 'Other'];
+const ASSET_TYPES: AssetType[] = ['S3', 'Redshift', 'RDS', 'Glue', 'Athena', 'OLTP', 'Other'];
 const SENSITIVITY_LEVELS: SensitivityLevel[] = ['Public', 'Internal', 'Confidential', 'Restricted'];
 
 export function AssetsPage() {
@@ -317,6 +317,7 @@ function CreateAssetModal({
     name: '',
     description: '',
     type: 'S3' as AssetType,
+    source: '',
     location: '',
     domainId: '',
     dataOwnerId: '',
@@ -344,6 +345,7 @@ function CreateAssetModal({
         name: '',
         description: '',
         type: 'S3',
+        source: '',
         location: '',
         domainId: '',
         dataOwnerId: '',
@@ -426,18 +428,33 @@ function CreateAssetModal({
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Location / Path *
-          </label>
-          <input
-            type="text"
-            value={formData.location}
-            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-            className="input"
-            placeholder="s3://bucket/path/ or redshift://cluster/schema.table"
-            required
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Source *
+            </label>
+            <input
+              type="text"
+              value={formData.source}
+              onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+              className="input"
+              placeholder="e.g. Fivetran, Salesforce, NetSuite"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Location / Path *
+            </label>
+            <input
+              type="text"
+              value={formData.location}
+              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              className="input"
+              placeholder="s3://bucket/path/ or redshift://cluster/schema.table"
+              required
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
@@ -643,6 +660,7 @@ function BulkUploadModal({
             <div><strong>name</strong> (required)</div>
             <div><strong>description</strong> (required)</div>
             <div><strong>type</strong> (required): S3, Redshift, RDS, Glue, Athena, Other</div>
+            <div><strong>source</strong>: e.g. Fivetran, Salesforce, NetSuite</div>
             <div><strong>location</strong> (required): path/URL of the data</div>
             <div><strong>domainId</strong> (required): domain-1, domain-2, etc.</div>
             <div><strong>dataOwnerId</strong>: user-dataowner-1, user-steward-1, etc.</div>

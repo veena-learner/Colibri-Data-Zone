@@ -1,13 +1,14 @@
 import { v4 as uuidv4 } from 'uuid';
 import { BaseModel } from './BaseModel';
-import { DataAsset } from '../types';
-import { ENTITY_TYPES, SENSITIVITY_LEVELS, SensitivityLevel, AssetType } from '../config/constants';
+import { DataAsset, TargetTableMapping } from '../types';
+import { ENTITY_TYPES, SENSITIVITY_LEVELS, SensitivityLevel, AssetType, IngestionStatus } from '../config/constants';
 
 export interface CreateAssetInput {
   name: string;
   description: string;
   type: AssetType;
   location: string;
+  source?: string;
   format?: string;
   schema?: DataAsset['schema'];
   domainId: string;
@@ -17,6 +18,10 @@ export interface CreateAssetInput {
   tags?: string[];
   glossaryTermIds?: string[];
   metadata?: Record<string, string>;
+  sourceSystem?: string;
+  sourceTableName?: string;
+  ingestionStatus?: IngestionStatus;
+  targetRedshiftTables?: TargetTableMapping[];
 }
 
 export class AssetModel extends BaseModel {
@@ -40,6 +45,7 @@ export class AssetModel extends BaseModel {
       description: input.description,
       type: input.type,
       location: input.location,
+      source: input.source,
       format: input.format,
       schema: input.schema,
       domainId: input.domainId,
@@ -49,6 +55,10 @@ export class AssetModel extends BaseModel {
       tags: input.tags || [],
       glossaryTermIds: input.glossaryTermIds || [],
       metadata: input.metadata,
+      sourceSystem: input.sourceSystem,
+      sourceTableName: input.sourceTableName,
+      ingestionStatus: input.ingestionStatus,
+      targetRedshiftTables: input.targetRedshiftTables,
       createdAt: now,
       updatedAt: now,
     };
@@ -98,6 +108,16 @@ export class AssetModel extends BaseModel {
         a.description.toLowerCase().includes(lowerQuery) ||
         a.tags.some((t) => t.toLowerCase().includes(lowerQuery))
     );
+  }
+
+  async listSourceTables(): Promise<DataAsset[]> {
+    const assets = await this.listAll();
+    return assets.filter((a) => a.type === 'OLTP');
+  }
+
+  async listBySourceSystem(sourceSystem: string): Promise<DataAsset[]> {
+    const assets = await this.listSourceTables();
+    return assets.filter((a) => a.sourceSystem === sourceSystem);
   }
 }
 
