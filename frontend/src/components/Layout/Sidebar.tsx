@@ -5,9 +5,9 @@ import {
   FolderTree,
   BookOpen,
   GitBranch,
-  Settings,
   LogOut,
   Table2,
+  Layers,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 
@@ -17,6 +17,7 @@ const navItems = [
   { to: '/assets', icon: Database, label: 'Data Catalog' },
   { to: '/domains', icon: FolderTree, label: 'Domains' },
   { to: '/glossary', icon: BookOpen, label: 'Glossary' },
+  { to: '/ontology', icon: Layers, label: 'Ontology' },
   { to: '/lineage', icon: GitBranch, label: 'Lineage' },
 ];
 

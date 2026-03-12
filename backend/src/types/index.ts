@@ -63,6 +63,14 @@ export interface GlossaryTerm extends BaseEntity {
   ownerId: string;
 }
 
+export interface OntologyColumn extends BaseEntity {
+  id: string;
+  model: string;
+  column: string;
+  description: string;
+  ontologyDefinition?: string;
+}
+
 export interface User extends BaseEntity {
   id: string;
   email: string;

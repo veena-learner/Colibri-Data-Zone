@@ -6,6 +6,7 @@ import type {
   DataAsset,
   Domain,
   GlossaryTerm,
+  OntologyColumn,
   LineageEdge,
   LineageGraph,
   DashboardStats,
@@ -136,6 +137,37 @@ export const domainsApi = {
   },
 };
 
+export const ontologyApi = {
+  list: async (params?: { model?: string; search?: string }): Promise<OntologyColumn[]> => {
+    const { data } = await api.get<ApiResponse<OntologyColumn[]>>('/ontology', { params });
+    return data.data || [];
+  },
+
+  getModels: async (): Promise<string[]> => {
+    const { data } = await api.get<ApiResponse<string[]>>('/ontology/models');
+    return data.data || [];
+  },
+
+  getById: async (id: string): Promise<OntologyColumn> => {
+    const { data } = await api.get<ApiResponse<OntologyColumn>>(`/ontology/${id}`);
+    return data.data!;
+  },
+
+  create: async (item: Partial<OntologyColumn>): Promise<OntologyColumn> => {
+    const { data } = await api.post<ApiResponse<OntologyColumn>>('/ontology', item);
+    return data.data!;
+  },
+
+  update: async (id: string, updates: Partial<OntologyColumn>): Promise<OntologyColumn> => {
+    const { data } = await api.put<ApiResponse<OntologyColumn>>(`/ontology/${id}`, updates);
+    return data.data!;
+  },
+
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/ontology/${id}`);
+  },
+};
+
 export const glossaryApi = {
   list: async (params?: { search?: string }): Promise<GlossaryTerm[]> => {
     const { data } = await api.get<ApiResponse<GlossaryTerm[]>>('/glossary', { params });
@@ -201,6 +233,64 @@ export interface BulkUploadResult {
   errors: { row: number; name: string; error: string }[];
 }
 
+export interface OntologyBulkUploadResult {
+  totalRows: number;
+  successCount: number;
+  errorCount: number;
+  errors: { row: number; model: string; column: string; error: string }[];
+}
+
+export interface DbtLineageNode {
+  id: string;
+  name: string;
+  resourceType: string;
+  schema: string;
+  database: string;
+  description: string;
+  source?: string;
+  tags: string[];
+  columnCount: number;
+}
+
+export interface DbtLineageEdge {
+  id: string;
+  source: string;
+  target: string;
+}
+
+export interface DbtLineageData {
+  nodes: DbtLineageNode[];
+  edges: DbtLineageEdge[];
+  stats: {
+    totalModels: number;
+    totalSources: number;
+    totalEdges: number;
+    totalSeeds: number;
+  };
+}
+
+export const dbtApi = {
+  getLineage: async (params?: { search?: string; nodeId?: string; depth?: number }): Promise<DbtLineageData> => {
+    const { data } = await api.get<ApiResponse<DbtLineageData>>('/dbt/lineage', { params });
+    return data.data!;
+  },
+
+  getNodes: async (params?: { type?: string; search?: string; limit?: number }): Promise<DbtLineageNode[]> => {
+    const { data } = await api.get<ApiResponse<DbtLineageNode[]>>('/dbt/lineage/nodes', { params });
+    return data.data || [];
+  },
+
+  uploadFiles: async (manifest: File, catalog?: File): Promise<{ message: string; stats: DbtLineageData['stats'] }> => {
+    const formData = new FormData();
+    formData.append('manifest', manifest);
+    if (catalog) formData.append('catalog', catalog);
+    const { data } = await api.post<ApiResponse<{ message: string; stats: DbtLineageData['stats'] }>>('/dbt/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data.data!;
+  },
+};
+
 export const uploadApi = {
   bulkUploadAssets: async (file: File): Promise<BulkUploadResult> => {
     const formData = new FormData();
@@ -213,8 +303,23 @@ export const uploadApi = {
     return data.data!;
   },
 
+  bulkUploadOntology: async (file: File): Promise<OntologyBulkUploadResult> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const { data } = await api.post<ApiResponse<OntologyBulkUploadResult>>('/upload/ontology', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return data.data!;
+  },
+
   downloadTemplate: (): string => {
     return '/api/upload/template';
+  },
+
+  downloadOntologyTemplate: (): string => {
+    return '/api/upload/ontology/template';
   },
 };
 

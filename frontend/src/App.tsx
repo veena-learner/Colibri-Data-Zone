@@ -8,6 +8,7 @@ import { AssetsPage } from './pages/Assets';
 import { AssetDetailPage } from './pages/AssetDetail';
 import { DomainsPage } from './pages/Domains';
 import { GlossaryPage } from './pages/Glossary';
+import { OntologyPage } from './pages/Ontology';
 import { LineagePage } from './pages/Lineage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -43,6 +44,7 @@ function App() {
         <Route path="assets/:id" element={<AssetDetailPage />} />
         <Route path="domains" element={<DomainsPage />} />
         <Route path="glossary" element={<GlossaryPage />} />
+        <Route path="ontology" element={<OntologyPage />} />
         <Route path="lineage" element={<LineagePage />} />
       </Route>
     </Routes>

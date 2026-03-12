@@ -139,7 +139,49 @@ class MockDynamoDB {
     // --- Load CSV assets ---
     this.loadCsvAssets();
 
+    // --- Ontology (column/attribute descriptions + ontology definition) from CSV ---
+    this.loadOntologyFromCsv();
+
     console.log('Mock database seeded successfully!');
+  }
+
+  private loadOntologyFromCsv(): void {
+    const csvPath = path.resolve(__dirname, '../../data/dbt_column_descriptions.csv');
+    if (!fs.existsSync(csvPath)) {
+      console.log('Ontology CSV not found at backend/data/dbt_column_descriptions.csv, skipping.');
+      return;
+    }
+    const data = fs.readFileSync(csvPath, 'utf8');
+    const lines = data.split(/\r?\n/).filter((l) => l.trim());
+    if (lines.length < 2) return;
+
+    const now = new Date().toISOString();
+    let i = 1;
+    let loaded = 0;
+    while (i < lines.length) {
+      let line = lines[i];
+      while (line && (line.match(/"/g)?.length ?? 0) % 2 !== 0 && i + 1 < lines.length) {
+        line += '\n' + lines[++i];
+      }
+      const parts = this.parseCsvLine(line);
+      if (parts.length >= 3 && parts[0] && parts[1]) {
+        const id = `ont-${i}`;
+        this.put({
+          PK: `ONTOLOGY#${id}`,
+          SK: 'METADATA',
+          id,
+          model: parts[0].trim(),
+          column: parts[1].trim(),
+          description: parts[2].trim(),
+          ontologyDefinition: parts[3]?.trim() || undefined,
+          createdAt: now,
+          updatedAt: now,
+        });
+        loaded++;
+      }
+      i++;
+    }
+    console.log(`Loaded ${loaded} ontology column descriptions from CSV.`);
   }
 
   private seedOltpSourceTables(): void {

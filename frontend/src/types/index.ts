@@ -75,6 +75,16 @@ export interface GlossaryTerm {
   updatedAt: string;
 }
 
+export interface OntologyColumn {
+  id: string;
+  model: string;
+  column: string;
+  description: string;
+  ontologyDefinition?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface LineageEdge {
   id: string;
   sourceAssetId: string;
