@@ -8,6 +8,8 @@ export interface CreateOntologyInput {
   column: string;
   description: string;
   ontologyDefinition?: string;
+  enhancedDescription?: string;
+  ontologyClass?: string;
 }
 
 export class OntologyModel extends BaseModel {
@@ -31,6 +33,8 @@ export class OntologyModel extends BaseModel {
       column: input.column.trim(),
       description: input.description?.trim() || '',
       ontologyDefinition: input.ontologyDefinition?.trim(),
+      enhancedDescription: input.enhancedDescription?.trim(),
+      ontologyClass: input.ontologyClass?.trim(),
       createdAt: now,
       updatedAt: now,
     };
@@ -78,7 +82,9 @@ export class OntologyModel extends BaseModel {
         o.model.toLowerCase().includes(q) ||
         o.column.toLowerCase().includes(q) ||
         (o.description && o.description.toLowerCase().includes(q)) ||
-        (o.ontologyDefinition && o.ontologyDefinition.toLowerCase().includes(q))
+        (o.ontologyDefinition && o.ontologyDefinition.toLowerCase().includes(q)) ||
+        (o.enhancedDescription && o.enhancedDescription.toLowerCase().includes(q)) ||
+        (o.ontologyClass && o.ontologyClass.toLowerCase().includes(q))
     );
   }
 
@@ -93,6 +99,8 @@ export class OntologyModel extends BaseModel {
       return this.update(existing.id, {
         description: input.description?.trim() ?? existing.description,
         ontologyDefinition: input.ontologyDefinition?.trim() ?? existing.ontologyDefinition,
+        enhancedDescription: input.enhancedDescription?.trim() ?? existing.enhancedDescription,
+        ontologyClass: input.ontologyClass?.trim() ?? existing.ontologyClass,
       });
     }
     return this.create(input);

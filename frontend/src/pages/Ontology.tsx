@@ -85,7 +85,7 @@ export function OntologyPage() {
               className="btn-secondary flex items-center gap-2"
             >
               <Upload className="w-5 h-5" />
-              Bulk Upload CSV
+              Bulk Upload (CSV / Excel)
             </button>
             <button
               onClick={() => setIsAddModalOpen(true)}
@@ -133,11 +133,17 @@ export function OntologyPage() {
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
                       Column
                     </th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase min-w-[280px]">
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase min-w-[240px]">
                       Description
                     </th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase min-w-[200px]">
                       Ontology Definition
+                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase min-w-[220px]">
+                      Enhanced Description
+                    </th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">
+                      Ontology Class
                     </th>
                   </tr>
                 </thead>
@@ -170,51 +176,41 @@ export function OntologyPage() {
   );
 }
 
+function truncate(s: string | undefined, len: number) {
+  if (!s) return null;
+  return s.length <= len ? s : `${s.slice(0, len)}…`;
+}
+
 function OntologyRow({ row }: { row: OntologyColumn }) {
   const [expanded, setExpanded] = useState(false);
-  const descTruncated = row.description.length > 120;
-  const ontologyTruncated = (row.ontologyDefinition?.length ?? 0) > 80;
+  const descTruncated = row.description.length > 100;
+  const showDesc = expanded || !descTruncated ? row.description : truncate(row.description, 100);
+  const showOntology = expanded || (row.ontologyDefinition?.length ?? 0) <= 80 ? row.ontologyDefinition : truncate(row.ontologyDefinition, 80);
+  const showEnhanced = expanded || (row.enhancedDescription?.length ?? 0) <= 80 ? row.enhancedDescription : truncate(row.enhancedDescription, 80);
 
   return (
     <tr className="hover:bg-gray-50">
       <td className="px-4 py-3 font-mono text-sm text-gray-900">{row.model}</td>
       <td className="px-4 py-3 font-mono text-sm text-gray-800">{row.column}</td>
-      <td className="px-4 py-3 text-sm text-gray-600">
-        {descTruncated && !expanded ? (
-          <>
-            {row.description.slice(0, 120)}…
-            <button
-              type="button"
-              onClick={() => setExpanded(true)}
-              className="ml-1 text-colibri-600 hover:underline"
-            >
-              <ChevronDown className="w-4 h-4 inline" />
-            </button>
-          </>
-        ) : (
-          <>
-            {row.description}
-            {descTruncated && expanded && (
-              <button
-                type="button"
-                onClick={() => setExpanded(false)}
-                className="ml-1 text-colibri-600 hover:underline"
-              >
-                Less
-              </button>
-            )}
-          </>
+      <td className="px-4 py-3 text-sm text-gray-600 max-w-[280px]">
+        {showDesc}
+        {descTruncated && (
+          <button type="button" onClick={() => setExpanded(!expanded)} className="ml-1 text-colibri-600 hover:underline text-xs">
+            {expanded ? 'Less' : 'More'}
+          </button>
         )}
       </td>
-      <td className="px-4 py-3 text-sm text-gray-600">
-        {row.ontologyDefinition ? (
-          ontologyTruncated && !expanded ? (
-            <>
-              {row.ontologyDefinition.slice(0, 80)}…
-            </>
-          ) : (
-            row.ontologyDefinition
-          )
+      <td className="px-4 py-3 text-sm text-gray-600 max-w-[200px]">
+        {showOntology ?? <span className="text-gray-400 italic">—</span>}
+      </td>
+      <td className="px-4 py-3 text-sm text-gray-600 max-w-[220px]">
+        {showEnhanced ?? <span className="text-gray-400 italic">—</span>}
+      </td>
+      <td className="px-4 py-3 text-sm">
+        {row.ontologyClass ? (
+          <span className="px-2 py-0.5 rounded bg-colibri-50 text-colibri-700 text-xs font-medium">
+            {row.ontologyClass}
+          </span>
         ) : (
           <span className="text-gray-400 italic">—</span>
         )}
@@ -235,6 +231,8 @@ function AddOntologyModal({
     column: '',
     description: '',
     ontologyDefinition: '',
+    enhancedDescription: '',
+    ontologyClass: '',
   });
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
@@ -245,7 +243,7 @@ function AddOntologyModal({
       queryClient.invalidateQueries({ queryKey: ['ontology'] });
       queryClient.invalidateQueries({ queryKey: ['ontology-models'] });
       onClose();
-      setFormData({ model: '', column: '', description: '', ontologyDefinition: '' });
+      setFormData({ model: '', column: '', description: '', ontologyDefinition: '', enhancedDescription: '', ontologyClass: '' });
       setError(null);
     },
     onError: (err: any) => {
@@ -265,6 +263,8 @@ function AddOntologyModal({
       column: formData.column.trim(),
       description: formData.description.trim(),
       ontologyDefinition: formData.ontologyDefinition.trim() || undefined,
+      enhancedDescription: formData.enhancedDescription.trim() || undefined,
+      ontologyClass: formData.ontologyClass.trim() || undefined,
     });
   };
 
@@ -313,6 +313,26 @@ function AddOntologyModal({
             className="input"
             rows={2}
             placeholder="Optional ontology definition"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Enhanced Description</label>
+          <textarea
+            value={formData.enhancedDescription}
+            onChange={(e) => setFormData({ ...formData, enhancedDescription: e.target.value })}
+            className="input"
+            rows={2}
+            placeholder="Optional enhanced description"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Ontology Class</label>
+          <input
+            type="text"
+            value={formData.ontologyClass}
+            onChange={(e) => setFormData({ ...formData, ontologyClass: e.target.value })}
+            className="input"
+            placeholder="e.g. Identifier, Entity"
           />
         </div>
         {error && (
@@ -373,7 +393,7 @@ function BulkUploadOntologyModal({
 
   const handleUpload = () => {
     if (!selectedFile) {
-      setError('Please select a CSV file');
+      setError('Please select a CSV or Excel file');
       return;
     }
     setError(null);
@@ -389,12 +409,12 @@ function BulkUploadOntologyModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Bulk Upload Ontology (CSV)" size="lg">
+    <Modal isOpen={isOpen} onClose={handleClose} title="Bulk Upload Ontology (CSV or Excel)" size="lg">
       <div className="space-y-6">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="text-sm font-medium text-blue-800 mb-2">CSV format</h4>
+          <h4 className="text-sm font-medium text-blue-800 mb-2">Accepted: CSV or Excel (.xlsx, .xls)</h4>
           <p className="text-sm text-blue-700 mb-2">
-            Header row: <code className="bg-blue-100 px-1 rounded">model,column,description,Ontology Definition</code>
+            Columns: <code className="bg-blue-100 px-1 rounded text-xs">model</code>, <code className="bg-blue-100 px-1 rounded text-xs">column</code>, <code className="bg-blue-100 px-1 rounded text-xs">description</code>, <code className="bg-blue-100 px-1 rounded text-xs">Ontology Definition</code>, <code className="bg-blue-100 px-1 rounded text-xs">Enhanced Description</code>, <code className="bg-blue-100 px-1 rounded text-xs">Ontology Class</code>
           </p>
           <p className="text-sm text-blue-700 mb-2">
             Rows with the same model+column will be updated; new model+column pairs will be added.
@@ -429,7 +449,7 @@ function BulkUploadOntologyModal({
           <input
             ref={fileInputRef}
             type="file"
-            accept=".csv"
+            accept=".csv,.xlsx,.xls"
             onChange={handleFileSelect}
             className="hidden"
             id="ontology-csv-upload"
@@ -443,7 +463,7 @@ function BulkUploadOntologyModal({
                 <span className="text-gray-500">Click to change file</span>
               </p>
             ) : (
-              <p className="text-sm text-gray-500">Click to select a CSV file</p>
+              <p className="text-sm text-gray-500">Click to select a CSV or Excel file</p>
             )}
           </label>
         </div>

@@ -81,6 +81,8 @@ export interface OntologyColumn {
   column: string;
   description: string;
   ontologyDefinition?: string;
+  enhancedDescription?: string;
+  ontologyClass?: string;
   createdAt: string;
   updatedAt: string;
 }

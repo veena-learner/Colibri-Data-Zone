@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import * as XLSX from 'xlsx';
 
 interface MockItem {
   [key: string]: any;
@@ -139,19 +140,53 @@ class MockDynamoDB {
     // --- Load CSV assets ---
     this.loadCsvAssets();
 
-    // --- Ontology (column/attribute descriptions + ontology definition) from CSV ---
-    this.loadOntologyFromCsv();
+    // --- Ontology: prefer enhanced Excel if present, else CSV ---
+    const xlsxPath = path.resolve(__dirname, '../../data/dbt_column_descriptions_enhanced.xlsx');
+    const csvPath = path.resolve(__dirname, '../../data/dbt_column_descriptions.csv');
+    if (fs.existsSync(xlsxPath)) {
+      this.loadOntologyFromXlsx(xlsxPath);
+    } else if (fs.existsSync(csvPath)) {
+      this.loadOntologyFromCsv(csvPath);
+    } else {
+      console.log('Ontology file not found (dbt_column_descriptions_enhanced.xlsx or dbt_column_descriptions.csv), skipping.');
+    }
 
     console.log('Mock database seeded successfully!');
   }
 
-  private loadOntologyFromCsv(): void {
-    const csvPath = path.resolve(__dirname, '../../data/dbt_column_descriptions.csv');
-    if (!fs.existsSync(csvPath)) {
-      console.log('Ontology CSV not found at backend/data/dbt_column_descriptions.csv, skipping.');
-      return;
+  private loadOntologyFromXlsx(filePath: string): void {
+    const workbook = XLSX.readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const rows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(worksheet);
+    const now = new Date().toISOString();
+    let loaded = 0;
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i] as Record<string, unknown>;
+      const model = String(row['model'] ?? row['Model'] ?? '').trim();
+      const column = String(row['column'] ?? row['Column'] ?? '').trim();
+      if (!model || !column) continue;
+      const id = `ont-xlsx-${i + 1}`;
+      this.put({
+        PK: `ONTOLOGY#${id}`,
+        SK: 'METADATA',
+        id,
+        model,
+        column,
+        description: String(row['description'] ?? row['Description'] ?? '').trim(),
+        ontologyDefinition: row['Ontology Definition'] != null ? String(row['Ontology Definition']).trim() : undefined,
+        enhancedDescription: row['Enhanced Description'] != null ? String(row['Enhanced Description']).trim() : undefined,
+        ontologyClass: row['Ontology Class'] != null ? String(row['Ontology Class']).trim() : undefined,
+        createdAt: now,
+        updatedAt: now,
+      });
+      loaded++;
     }
-    const data = fs.readFileSync(csvPath, 'utf8');
+    console.log(`Loaded ${loaded} ontology column descriptions from Excel.`);
+  }
+
+  private loadOntologyFromCsv(filePath: string): void {
+    const data = fs.readFileSync(filePath, 'utf8');
     const lines = data.split(/\r?\n/).filter((l) => l.trim());
     if (lines.length < 2) return;
 
@@ -174,6 +209,8 @@ class MockDynamoDB {
           column: parts[1].trim(),
           description: parts[2].trim(),
           ontologyDefinition: parts[3]?.trim() || undefined,
+          enhancedDescription: parts[4]?.trim() || undefined,
+          ontologyClass: parts[5]?.trim() || undefined,
           createdAt: now,
           updatedAt: now,
         });

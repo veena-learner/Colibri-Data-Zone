@@ -32,17 +32,25 @@ function parseCsvLine(line: string): string[] {
   return parts;
 }
 
-/** Parse CSV buffer with header: model, column, description, Ontology Definition */
-function parseOntologyCsv(buffer: Buffer): { model: string; column: string; description: string; ontologyDefinition: string }[] {
+export interface OntologyUploadRow {
+  model: string;
+  column: string;
+  description: string;
+  ontologyDefinition?: string;
+  enhancedDescription?: string;
+  ontologyClass?: string;
+}
+
+/** Parse CSV buffer with header: model, column, description, Ontology Definition [, Enhanced Description] [, Ontology Class] */
+function parseOntologyCsv(buffer: Buffer): OntologyUploadRow[] {
   const text = buffer.toString('utf8');
   const lines = text.split(/\r?\n/).filter((l) => l.trim());
   if (lines.length < 2) return [];
 
-  const rows: { model: string; column: string; description: string; ontologyDefinition: string }[] = [];
-  let i = 1; // skip header
+  const rows: OntologyUploadRow[] = [];
+  let i = 1;
   while (i < lines.length) {
     let line = lines[i];
-    // If line starts with quote, consume until we close the quote (multi-line field)
     while (line && (line.match(/"/g)?.length ?? 0) % 2 !== 0 && i + 1 < lines.length) {
       line += '\n' + lines[++i];
     }
@@ -52,12 +60,30 @@ function parseOntologyCsv(buffer: Buffer): { model: string; column: string; desc
         model: parts[0]?.trim() ?? '',
         column: parts[1]?.trim() ?? '',
         description: parts[2]?.trim() ?? '',
-        ontologyDefinition: parts[3]?.trim() ?? '',
+        ontologyDefinition: parts[3]?.trim() || undefined,
+        enhancedDescription: parts[4]?.trim() || undefined,
+        ontologyClass: parts[5]?.trim() || undefined,
       });
     }
     i++;
   }
   return rows;
+}
+
+/** Parse Excel buffer; expected columns: model, column, description, Ontology Definition, Enhanced Description, Ontology Class */
+function parseOntologyExcel(buffer: Buffer): OntologyUploadRow[] {
+  const workbook = XLSX.read(buffer, { type: 'buffer' });
+  const sheetName = workbook.SheetNames[0];
+  const worksheet = workbook.Sheets[sheetName];
+  const rows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(worksheet);
+  return rows.map((row: Record<string, unknown>) => ({
+    model: String(row['model'] ?? row['Model'] ?? '').trim(),
+    column: String(row['column'] ?? row['Column'] ?? '').trim(),
+    description: String(row['description'] ?? row['Description'] ?? '').trim(),
+    ontologyDefinition: row['Ontology Definition'] != null ? String(row['Ontology Definition']).trim() : undefined,
+    enhancedDescription: row['Enhanced Description'] != null ? String(row['Enhanced Description']).trim() : undefined,
+    ontologyClass: row['Ontology Class'] != null ? String(row['Ontology Class']).trim() : undefined,
+  }));
 }
 
 interface ExcelRow {
@@ -198,9 +224,21 @@ router.post(
         return;
       }
 
-      const rows = parseOntologyCsv(req.file.buffer);
+      const isExcel = /\.xlsx?$/i.test(req.file.originalname) ||
+        req.file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        req.file.mimetype === 'application/vnd.ms-excel';
+
+      const rows: OntologyUploadRow[] = isExcel
+        ? parseOntologyExcel(req.file.buffer)
+        : parseOntologyCsv(req.file.buffer);
+
       if (rows.length === 0) {
-        res.status(400).json({ success: false, error: 'CSV is empty or invalid. Expected header: model,column,description,Ontology Definition' });
+        res.status(400).json({
+          success: false,
+          error: isExcel
+            ? 'Excel is empty or invalid. Expected columns: model, column, description, Ontology Definition, Enhanced Description, Ontology Class'
+            : 'CSV is empty or invalid. Expected header: model,column,description,Ontology Definition',
+        });
         return;
       }
 
@@ -218,7 +256,9 @@ router.post(
             model: row.model,
             column: row.column,
             description: row.description,
-            ontologyDefinition: row.ontologyDefinition || undefined,
+            ontologyDefinition: row.ontologyDefinition,
+            enhancedDescription: row.enhancedDescription,
+            ontologyClass: row.ontologyClass,
           });
           results.success++;
         } catch (err: any) {
@@ -237,14 +277,14 @@ router.post(
       });
     } catch (error: any) {
       console.error('Ontology bulk upload error:', error);
-      res.status(500).json({ success: false, error: error.message || 'Failed to process CSV' });
+      res.status(500).json({ success: false, error: error.message || 'Failed to process file' });
     }
   }
 );
 
 router.get('/ontology/template', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const csv = 'model,column,description,Ontology Definition\ncustomer_dim,customer_id,Customer unique identifier,\nnetsuite_customer,entity_name,Legal entity name,';
+    const csv = 'model,column,description,Ontology Definition,Enhanced Description,Ontology Class\ncustomer_dim,customer_id,Customer unique identifier,,Unique identifier for the customer.,Identifier';
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename=ontology_column_descriptions_template.csv');
     res.send(csv);

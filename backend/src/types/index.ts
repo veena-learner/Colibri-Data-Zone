@@ -69,6 +69,8 @@ export interface OntologyColumn extends BaseEntity {
   column: string;
   description: string;
   ontologyDefinition?: string;
+  enhancedDescription?: string;
+  ontologyClass?: string;
 }
 
 export interface User extends BaseEntity {

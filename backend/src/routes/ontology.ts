@@ -56,7 +56,7 @@ router.post(
   isStewardOrAbove,
   async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-      const { model, column, description, ontologyDefinition } = req.body;
+      const { model, column, description, ontologyDefinition, enhancedDescription, ontologyClass } = req.body;
       if (!model || !column) {
         res.status(400).json({ success: false, error: 'model and column are required' });
         return;
@@ -66,6 +66,8 @@ router.post(
         column: String(column).trim(),
         description: description != null ? String(description).trim() : '',
         ontologyDefinition: ontologyDefinition != null ? String(ontologyDefinition).trim() : undefined,
+        enhancedDescription: enhancedDescription != null ? String(enhancedDescription).trim() : undefined,
+        ontologyClass: ontologyClass != null ? String(ontologyClass).trim() : undefined,
       });
       res.status(201).json({ success: true, data: item });
     } catch (error: any) {
@@ -85,10 +87,12 @@ router.put(
         res.status(404).json({ success: false, error: 'Not found' });
         return;
       }
-      const { description, ontologyDefinition } = req.body;
+      const { description, ontologyDefinition, enhancedDescription, ontologyClass } = req.body;
       const updated = await ontologyModel.update(req.params.id, {
         ...(description !== undefined && { description: String(description).trim() }),
         ...(ontologyDefinition !== undefined && { ontologyDefinition: String(ontologyDefinition).trim() }),
+        ...(enhancedDescription !== undefined && { enhancedDescription: String(enhancedDescription).trim() }),
+        ...(ontologyClass !== undefined && { ontologyClass: String(ontologyClass).trim() }),
       });
       res.json({ success: true, data: updated });
     } catch (error: any) {
