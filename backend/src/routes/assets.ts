@@ -4,6 +4,7 @@ import { assetModel } from '../models/AssetModel';
 import { authMiddleware, AuthRequest, isStewardOrAbove } from '../middleware/auth';
 import { validate } from '../middleware/validate';
 import { ASSET_TYPES, SENSITIVITY_LEVELS } from '../config/constants';
+import { TABLE_NAME } from '../config/database';
 
 const router = Router();
 
@@ -28,7 +29,10 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
       assets = assets.filter(a => a.type === type);
     }
 
-    res.json({ success: true, data: assets });
+    // Diagnostic: log table and count (check CloudWatch if UI shows wrong count)
+    console.log('Assets list: table=', TABLE_NAME, 'count=', assets.length);
+
+    res.json({ success: true, data: assets, total: assets.length });
   } catch (error) {
     console.error('List assets error:', error);
     res.status(500).json({ success: false, error: 'Failed to list assets' });

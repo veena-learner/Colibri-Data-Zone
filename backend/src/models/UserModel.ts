@@ -55,7 +55,7 @@ export class UserModel extends BaseModel {
 
   async update(email: string, updates: Partial<Omit<CreateUserInput, 'password'>>): Promise<User> {
     const { PK, SK } = this.getKeys(email);
-    return this.update<User>(PK, SK, {
+    return super.updateByKey<User>(PK, SK, {
       ...updates,
       updatedAt: new Date().toISOString(),
     } as Partial<User>);
@@ -64,7 +64,7 @@ export class UserModel extends BaseModel {
   async updatePassword(email: string, newPassword: string): Promise<void> {
     const { PK, SK } = this.getKeys(email);
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await this.update<User>(PK, SK, {
+    await super.updateByKey<User>(PK, SK, {
       password: hashedPassword,
       updatedAt: new Date().toISOString(),
     } as Partial<User>);

@@ -2,8 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
+// Load .env if present (e.g. local dev); in ECS/Docker env vars come from task definition
 dotenv.config({ path: '../.env' });
+dotenv.config({ path: '.env' });
 
+import { TABLE_NAME } from './config/database';
 import authRoutes from './routes/auth';
 import assetRoutes from './routes/assets';
 import domainRoutes from './routes/domains';
@@ -44,7 +47,9 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   res.status(500).json({ success: false, error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Colibri Data Zone API running on http://localhost:${PORT}`);
+const HOST = process.env.HOST || '0.0.0.0';
+app.listen(Number(PORT), HOST as string, () => {
+  console.log(`Colibri Data Zone API running on http://${HOST}:${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`DynamoDB table: ${TABLE_NAME} (env DYNAMODB_TABLE=${process.env.DYNAMODB_TABLE ?? 'not set'})`);
 });

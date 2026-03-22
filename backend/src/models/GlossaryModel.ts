@@ -49,7 +49,7 @@ export class GlossaryModel extends BaseModel {
 
   async update(id: string, updates: Partial<CreateGlossaryInput>): Promise<GlossaryTerm> {
     const { PK, SK } = this.getKeys(id);
-    return this.update<GlossaryTerm>(PK, SK, {
+    return super.updateByKey<GlossaryTerm>(PK, SK, {
       ...updates,
       updatedAt: new Date().toISOString(),
     } as Partial<GlossaryTerm>);

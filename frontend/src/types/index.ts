@@ -61,6 +61,8 @@ export interface Domain {
   tags: string[];
   createdAt: string;
   updatedAt: string;
+  /** Set by GET /domains when listing (count of catalog assets in this domain) */
+  assetCount?: number;
 }
 
 export interface GlossaryTerm {

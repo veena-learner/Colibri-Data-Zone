@@ -7,7 +7,6 @@ import {
   Plus,
   FileSpreadsheet,
   Table2,
-  ChevronDown,
   CheckCircle,
   XCircle,
 } from 'lucide-react';
@@ -447,7 +446,7 @@ function BulkUploadOntologyModal({
 
         <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
           <input
-            ref={fileInputRef}
+            ref={fileInputRef as React.RefObject<HTMLInputElement>}
             type="file"
             accept=".csv,.xlsx,.xls"
             onChange={handleFileSelect}

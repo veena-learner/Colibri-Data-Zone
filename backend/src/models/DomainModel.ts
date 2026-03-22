@@ -47,7 +47,7 @@ export class DomainModel extends BaseModel {
 
   async update(id: string, updates: Partial<CreateDomainInput>): Promise<Domain> {
     const { PK, SK } = this.getKeys(id);
-    return this.update<Domain>(PK, SK, {
+    return super.updateByKey<Domain>(PK, SK, {
       ...updates,
       updatedAt: new Date().toISOString(),
     } as Partial<Domain>);

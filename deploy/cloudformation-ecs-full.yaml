@@ -1,0 +1,303 @@
+# Colibri Data Zone - ECS Fargate + ALB + DynamoDB
+# Deploy: aws cloudformation create-stack --stack-name colibri-datazone --template-body file://deploy/cloudformation-ecs-full.yaml --capabilities CAPABILITY_NAMED_IAM
+# Then build/push images and run seed script.
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Colibri Data Zone - ECS Fargate, ALB, DynamoDB
+
+Parameters:
+  Environment:
+    Type: String
+    Default: production
+    AllowedValues: [production, staging]
+  JWTSecret:
+    Type: String
+    NoEcho: true
+    Default: 'colibri-datazone-jwt-change-me-in-production'
+    Description: JWT signing secret (use Secrets Manager or KMS in production)
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC for ECS and ALB (e.g. default VPC)
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: At least two subnets (e.g. default VPC subnets) for ALB and ECS
+  DynamoDBTableName:
+    Type: String
+    Default: ColibriDataZone-production
+    Description: Name of existing DynamoDB table (create manually if needed)
+
+Resources:
+  # --- ECS Cluster (DynamoDB table and ECR repos created separately / already exist) ---
+  EcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub 'colibri-datazone-${Environment}'
+      CapacityProviders:
+        - FARGATE
+        - FARGATE_SPOT
+      DefaultCapacityProviderStrategy:
+        - CapacityProvider: FARGATE
+          Weight: 1
+
+  # --- Security Groups ---
+  AlbSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ALB for Colibri Data Zone
+      VpcId: !Ref VpcId
+  AlbSgIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref AlbSg
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 0.0.0.0/0
+  EcsSg:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ECS tasks Colibri Data Zone
+      VpcId: !Ref VpcId
+  EcsSgIngressFromAlb:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref EcsSg
+      IpProtocol: tcp
+      FromPort: 3001
+      ToPort: 3001
+      SourceSecurityGroupId: !Ref AlbSg
+  EcsSgIngress80:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref EcsSg
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      SourceSecurityGroupId: !Ref AlbSg
+
+  # --- IAM: Task Execution Role (pull images, logs) ---
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'colibri-ecs-task-exec-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: ecs-tasks.amazonaws.com }
+            Action: sts:AssumeRole
+  TaskExecutionPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles: [!Ref TaskExecutionRole]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: [ecr:GetAuthorizationToken]
+            Resource: '*'
+          - Effect: Allow
+            Action: [ecr:BatchCheckLayerAvailability, ecr:GetDownloadUrlForLayer, ecr:BatchGetImage]
+            Resource:
+            - !Sub 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/colibri-backend'
+            - !Sub 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/colibri-frontend'
+          - Effect: Allow
+            Action: [logs:CreateLogStream, logs:PutLogEvents]
+            Resource: '*'
+          - Effect: Allow
+            Action: [secretsmanager:GetSecretValue]
+            Resource: !Ref JwtSecret
+  # --- Task Role (DynamoDB for backend) ---
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'colibri-ecs-task-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: { Service: ecs-tasks.amazonaws.com }
+            Action: sts:AssumeRole
+  TaskRolePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Roles: [!Ref TaskRole]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: [dynamodb:GetItem, dynamodb:PutItem, dynamodb:UpdateItem, dynamodb:DeleteItem, dynamodb:Query, dynamodb:Scan, dynamodb:BatchGetItem, dynamodb:BatchWriteItem]
+            Resource:
+            - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBTableName}'
+            - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${DynamoDBTableName}/index/*'
+
+  # --- JWT Secret (Secrets Manager) ---
+  JwtSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub 'colibri-datazone/${Environment}/jwt-secret'
+      Description: JWT signing secret for Colibri Data Zone API
+      SecretString: !Ref JWTSecret
+
+  # --- Log Groups ---
+  BackendLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/colibri-backend
+      RetentionInDays: 14
+  FrontendLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /ecs/colibri-frontend
+      RetentionInDays: 14
+
+  # --- ALB ---
+  Alb:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub 'colibri-datazone-${Environment}'
+      Scheme: internet-facing
+      Type: application
+      SecurityGroups: [!Ref AlbSg]
+      Subnets: !Ref SubnetIds
+  BackendTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub 'colibri-backend-${Environment}'
+      Port: 3001
+      Protocol: HTTP
+      VpcId: !Ref VpcId
+      TargetType: ip
+      HealthCheckPath: /health
+      HealthCheckProtocol: HTTP
+      HealthCheckIntervalSeconds: 60
+      HealthCheckTimeoutSeconds: 15
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 10
+      Matcher:
+        HttpCode: 200
+  FrontendTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub 'colibri-frontend-${Environment}'
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VpcId
+      TargetType: ip
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckIntervalSeconds: 60
+      HealthCheckTimeoutSeconds: 15
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 10
+      Matcher:
+        HttpCode: 200
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref Alb
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref FrontendTargetGroup
+
+  ListenerRuleApi:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      ListenerArn: !Ref Listener
+      Priority: 1
+      Conditions:
+        - Field: path-pattern
+          Values: ['/api/*', '/api']
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref BackendTargetGroup
+
+  # --- ECS Task Definitions ---
+  BackendTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub 'colibri-backend-${Environment}'
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      Cpu: '256'
+      Memory: '512'
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt TaskRole.Arn
+      ContainerDefinitions:
+        - Name: colibri-backend
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/colibri-backend:latest'
+          Essential: true
+          PortMappings:
+            - ContainerPort: 3001
+              Protocol: tcp
+          Environment:
+            - Name: NODE_ENV
+              Value: production
+            - Name: PORT
+              Value: '3001'
+            - Name: AWS_REGION
+              Value: !Ref AWS::Region
+            - Name: DYNAMODB_TABLE
+              Value: !Ref DynamoDBTableName
+          Secrets:
+            - Name: JWT_SECRET
+              ValueFrom: !Ref JwtSecret
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: /ecs/colibri-backend
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ecs
+      # No container HealthCheck - ALB target group health check only; avoids ECS killing tasks before ALB marks them healthy
+
+  FrontendTaskDef:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub 'colibri-frontend-${Environment}'
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      Cpu: '256'
+      Memory: '512'
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      ContainerDefinitions:
+        - Name: colibri-frontend
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/colibri-frontend:latest'
+          Essential: true
+          PortMappings:
+            - ContainerPort: 80
+              Protocol: tcp
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: /ecs/colibri-frontend
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ecs
+      # No container HealthCheck - ALB target group health check only
+
+  # ECS Services are created by deploy.sh after stack completes (avoids CloudFormation waiting for service stability).
+
+Outputs:
+  DataTableName:
+    Value: !Ref DynamoDBTableName
+  AlbDnsName:
+    Value: !GetAtt Alb.DNSName
+  AlbUrl:
+    Value: !Sub 'http://${Alb.DNSName}'
+  BackendRepoUri:
+    Value: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/colibri-backend'
+  FrontendRepoUri:
+    Value: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/colibri-frontend'
+  EcsClusterName:
+    Value: !Ref EcsCluster
+  EcsSecurityGroupId:
+    Description: Security group for ECS tasks (used by deploy.sh to create services)
+    Value: !Ref EcsSg
+  BackendTargetGroupArn:
+    Value: !Ref BackendTargetGroup
+  FrontendTargetGroupArn:
+    Value: !Ref FrontendTargetGroup
+  SubnetIds:
+    Description: Comma-separated subnet IDs for ECS tasks
+    Value: !Join [',', !Ref SubnetIds]

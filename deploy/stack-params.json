@@ -1,0 +1,6 @@
+[
+  { "ParameterKey": "Environment", "ParameterValue": "production" },
+  { "ParameterKey": "VpcId", "ParameterValue": "vpc-0670071ef531bfdad" },
+  { "ParameterKey": "SubnetIds", "ParameterValue": "subnet-00785f4769051618f,subnet-0c022a2ae58860014,subnet-08eeb0fc629cab415" },
+  { "ParameterKey": "DynamoDBTableName", "ParameterValue": "ColibriDataZone-production" }
+]

@@ -73,7 +73,7 @@ export class AssetModel extends BaseModel {
 
   async update(id: string, updates: Partial<CreateAssetInput>): Promise<DataAsset> {
     const { PK, SK } = this.getKeys(id);
-    return this.update<DataAsset>(PK, SK, {
+    return super.updateByKey<DataAsset>(PK, SK, {
       ...updates,
       updatedAt: new Date().toISOString(),
     } as Partial<DataAsset>);

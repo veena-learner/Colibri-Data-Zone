@@ -49,7 +49,7 @@ export class OntologyModel extends BaseModel {
 
   async update(id: string, updates: Partial<CreateOntologyInput>): Promise<OntologyColumn> {
     const { PK, SK } = this.getKeys(id);
-    return this.update<OntologyColumn>(PK, SK, {
+    return super.updateByKey<OntologyColumn>(PK, SK, {
       ...updates,
       updatedAt: new Date().toISOString(),
     } as Partial<OntologyColumn>);

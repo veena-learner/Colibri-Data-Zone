@@ -36,8 +36,11 @@ export function DomainsPage() {
     },
   });
 
-  const getAssetCount = (domainId: string) => {
-    return assets?.filter((a) => a.domainId === domainId).length || 0;
+  const formatAssetsLabel = (domain: Domain) => {
+    if (typeof domain.assetCount === 'number') return `${domain.assetCount} assets`;
+    if (assets === undefined) return '… assets';
+    const n = assets.filter((a) => a.domainId === domain.id).length;
+    return `${n} assets`;
   };
 
   if (isLoading) return <PageLoading />;
@@ -108,7 +111,7 @@ export function DomainsPage() {
                     <div className="flex items-center gap-4 text-sm">
                       <div className="flex items-center gap-1 text-gray-500">
                         <Database className="w-4 h-4" />
-                        {getAssetCount(domain.id)} assets
+                        {formatAssetsLabel(domain)}
                       </div>
                     </div>
                     {domain.tags.length > 0 && (

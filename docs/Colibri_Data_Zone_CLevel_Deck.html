@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Colibri Data Zone — C-Level Briefing</title>
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal:   #0A7E7E;
+    --teal2:  #0D9B9B;
+    --teal3:  #B2E0E0;
+    --navy:   #0D1B2A;
+    --navy2:  #1A2E44;
+    --gold:   #E8A835;
+    --gold2:  #F5C057;
+    --white:  #FFFFFF;
+    --offwhite: #F4F7F9;
+    --gray:   #6B7280;
+    --lightgray: #E5E9EE;
+    --danger: #D94040;
+    --slide-w: 1280px;
+    --slide-h: 720px;
+    --font: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: #1A1A2E;
+    color: var(--navy);
+    line-height: 1.5;
+  }
+
+  /* ── Navigation ── */
+  .nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(13,27,42,0.97);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 28px;
+    border-bottom: 2px solid var(--teal);
+    backdrop-filter: blur(8px);
+  }
+  .nav-brand { color: var(--teal2); font-size: 15px; font-weight: 700; letter-spacing: 0.03em; }
+  .nav-links { display: flex; gap: 6px; flex-wrap: wrap; }
+  .nav-links a {
+    color: rgba(255,255,255,0.65);
+    text-decoration: none;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    transition: all 0.2s;
+  }
+  .nav-links a:hover { background: var(--teal); color: #fff; }
+  .nav-links a.active { background: var(--teal); color: #fff; }
+
+  /* ── Slide Container ── */
+  .slides { margin-top: 52px; }
+
+  .slide {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    padding: 60px 80px;
+    overflow: hidden;
+  }
+
+  /* slide themes */
+  .slide-dark   { background: var(--navy); color: var(--white); }
+  .slide-light  { background: var(--offwhite); color: var(--navy); }
+  .slide-teal   { background: var(--teal); color: var(--white); }
+  .slide-white  { background: var(--white); color: var(--navy); }
+  .slide-accent {
+    background: linear-gradient(135deg, var(--navy) 0%, #13344F 100%);
+    color: var(--white);
+  }
+
+  /* ── Typography ── */
+  .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; opacity: 0.6;
+    margin-bottom: 12px;
+  }
+
+  h1 { font-size: clamp(36px, 4vw, 56px); font-weight: 800; line-height: 1.1; }
+  h2 { font-size: clamp(26px, 3vw, 38px); font-weight: 700; line-height: 1.15; }
+  h3 { font-size: clamp(18px, 2vw, 24px); font-weight: 600; }
+  h4 { font-size: 16px; font-weight: 600; }
+
+  .subtitle { font-size: clamp(16px, 1.5vw, 20px); opacity: 0.75; margin-top: 12px; }
+  .body-lg  { font-size: clamp(15px, 1.4vw, 18px); line-height: 1.65; }
+  .body-sm  { font-size: 14px; line-height: 1.6; }
+
+  /* ── Divider / Accent ── */
+  .divider {
+    width: 64px; height: 4px;
+    background: var(--gold);
+    border-radius: 2px;
+    margin: 18px 0 28px;
+  }
+  .divider-white { background: rgba(255,255,255,0.6); }
+
+  /* ── Slide 1: Title ── */
+  #slide-1 {
+    background: linear-gradient(145deg, #061828 0%, var(--navy2) 50%, #0A3344 100%);
+    color: var(--white);
+    padding: 80px 100px;
+    justify-content: space-between;
+  }
+  .title-badge {
+    display: inline-block;
+    background: var(--teal);
+    color: #fff;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 6px 18px; border-radius: 20px;
+    margin-bottom: 36px;
+  }
+  .title-main { margin-bottom: 6px; }
+  .title-main span { color: var(--gold2); }
+  .title-sub { font-size: 22px; opacity: 0.65; font-weight: 300; margin-bottom: 48px; }
+  .title-meta {
+    display: flex; gap: 48px; align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.15);
+    padding-top: 28px;
+  }
+  .title-meta-item { font-size: 13px; opacity: 0.65; }
+  .title-meta-item strong { display: block; font-size: 16px; opacity: 1; color: #fff; }
+  .title-visual {
+    position: absolute; right: 80px; top: 50%; transform: translateY(-50%);
+    width: 340px; height: 340px;
+    background: radial-gradient(circle, rgba(10,126,126,0.25) 0%, transparent 70%);
+    border-radius: 50%;
+    border: 1px solid rgba(10,126,126,0.3);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .title-visual-inner {
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(10,126,126,0.5) 0%, rgba(10,126,126,0.1) 100%);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 72px;
+  }
+
+  /* ── Slide Header ── */
+  .slide-header {
+    margin-bottom: 40px;
+  }
+  .slide-number {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; opacity: 0.4;
+    margin-bottom: 8px;
+  }
+
+  /* ── Grids ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .grid-60-40 { display: grid; grid-template-columns: 60% 40%; gap: 48px; align-items: start; }
+  .grid-40-60 { display: grid; grid-template-columns: 40% 60%; gap: 48px; align-items: start; }
+
+  /* ── Cards ── */
+  .card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .card-light {
+    background: var(--white);
+    border: 1px solid var(--lightgray);
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .card-teal {
+    background: linear-gradient(135deg, var(--teal) 0%, var(--teal2) 100%);
+    border-radius: 12px;
+    padding: 24px;
+    color: #fff;
+  }
+  .card-gold {
+    background: linear-gradient(135deg, #C47C0F 0%, var(--gold) 100%);
+    border-radius: 12px;
+    padding: 24px;
+    color: #fff;
+  }
+
+  .card-icon { font-size: 28px; margin-bottom: 12px; }
+  .card h4 { margin-bottom: 8px; font-size: 15px; }
+  .card p  { font-size: 13px; opacity: 0.8; line-height: 1.55; }
+
+  /* ── Challenge Table ── */
+  .challenge-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .challenge-label {
+    background: var(--teal);
+    color: #fff;
+    padding: 14px 18px;
+    display: flex; align-items: center;
+    font-weight: 700; font-size: 13px;
+  }
+  .challenge-impact {
+    background: var(--white);
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--navy);
+    border: 1px solid var(--lightgray);
+    border-left: none;
+    display: flex; align-items: center;
+  }
+
+  /* ── Stat Cards ── */
+  .stat-card {
+    text-align: center;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 28px 20px;
+  }
+  .stat-value {
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 800;
+    color: var(--gold2);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .stat-label { font-size: 13px; opacity: 0.7; }
+
+  /* ── Benefit Pillars ── */
+  .pillar {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 28px 24px;
+    border-top: 5px solid var(--teal);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  }
+  .pillar.gold-top  { border-top-color: var(--gold); }
+  .pillar.navy-top  { border-top-color: var(--navy2); }
+  .pillar h3 { font-size: 17px; margin-bottom: 16px; color: var(--navy); }
+  .pillar ul { list-style: none; }
+  .pillar ul li {
+    font-size: 13px;
+    color: #374151;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--lightgray);
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .pillar ul li:last-child { border-bottom: none; }
+  .pillar ul li::before { content: "✓"; color: var(--teal); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── Comparison Table ── */
+  .comp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .comp-table th {
+    background: var(--navy);
+    color: #fff;
+    padding: 12px 16px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+  .comp-table th:first-child { text-align: left; }
+  .comp-table th.col-highlight {
+    background: var(--teal);
+    font-size: 13px;
+  }
+  .comp-table td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--lightgray);
+    text-align: center;
+    color: var(--navy);
+  }
+  .comp-table td:first-child { text-align: left; font-weight: 600; }
+  .comp-table tr:nth-child(even) td { background: var(--offwhite); }
+  .comp-table td.col-highlight { background: rgba(10,126,126,0.06); font-weight: 600; }
+  .comp-table tr:nth-child(even) td.col-highlight { background: rgba(10,126,126,0.1); }
+  .yes { color: #059669; font-weight: 700; font-size: 16px; }
+  .no  { color: #9CA3AF; font-size: 16px; }
+  .partial { color: var(--gold); font-weight: 700; font-size: 14px; }
+  .cost-low  { color: #059669; font-weight: 700; font-size: 12px; }
+  .cost-med  { color: var(--gold); font-weight: 700; font-size: 12px; }
+  .cost-high { color: var(--danger); font-weight: 700; font-size: 12px; }
+
+  /* ── Roadmap ── */
+  .roadmap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; position: relative; }
+  .roadmap::before {
+    content: ''; position: absolute;
+    top: 28px; left: 12.5%; right: 12.5%;
+    height: 3px; background: var(--teal3);
+    z-index: 0;
+  }
+  .phase {
+    position: relative; z-index: 1;
+    text-align: center; padding: 0 12px;
+  }
+  .phase-dot {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: var(--teal);
+    margin: 0 auto 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 0 0 6px rgba(10,126,126,0.15);
+    color: #fff;
+  }
+  .phase-dot.ph2 { background: var(--teal2); }
+  .phase-dot.ph3 { background: var(--gold); }
+  .phase-dot.ph4 { background: var(--navy2); }
+  .phase-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--teal);
+    margin-bottom: 6px;
+  }
+  .phase-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+  .phase-items { font-size: 12px; text-align: left; }
+  .phase-items li { padding: 4px 0; border-bottom: 1px dashed rgba(0,0,0,0.08); list-style: none; }
+  .phase-items li::before { content: "→ "; color: var(--teal); font-weight: 700; }
+
+  /* ── AI Connection Slide ── */
+  .ai-flow {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; margin: 32px 0;
+  }
+  .ai-node {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 20px 24px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    min-width: 160px;
+    border: 2px solid transparent;
+  }
+  .ai-node.active { border-color: var(--teal); }
+  .ai-node.highlight { border-color: var(--gold); background: #FFFBF0; }
+  .ai-node-icon { font-size: 32px; margin-bottom: 8px; }
+  .ai-node h4 { font-size: 14px; color: var(--navy); }
+  .ai-node p { font-size: 11px; color: var(--gray); margin-top: 4px; }
+  .ai-arrow {
+    font-size: 28px; color: var(--teal);
+    padding: 0 8px; flex-shrink: 0;
+  }
+
+  /* ── Why slide ── */
+  .why-row {
+    display: flex; align-items: flex-start; gap: 20px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 14px;
+  }
+  .why-icon { font-size: 28px; flex-shrink: 0; margin-top: 2px; }
+  .why-text h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; color: var(--gold2); }
+  .why-text p  { font-size: 13px; opacity: 0.8; line-height: 1.55; }
+
+  /* ── CTA Slide ── */
+  .cta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 40px; }
+  .cta-item {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-left: 4px solid var(--gold);
+    border-radius: 0 12px 12px 0;
+    padding: 20px 24px;
+  }
+  .cta-item h4 { font-size: 15px; margin-bottom: 8px; color: var(--gold2); }
+  .cta-item p  { font-size: 13px; opacity: 0.75; line-height: 1.55; }
+
+  /* ── Tag / Badge ── */
+  .badge {
+    display: inline-block;
+    font-size: 11px; font-weight: 700;
+    padding: 3px 12px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .badge-teal  { background: rgba(10,126,126,0.15); color: var(--teal2); }
+  .badge-gold  { background: rgba(232,168,53,0.15); color: #B87B0A; }
+  .badge-green { background: rgba(5,150,105,0.12);  color: #065F46; }
+  .badge-red   { background: rgba(217,64,64,0.12);  color: #991B1B; }
+
+  /* ── Page decoration ── */
+  .blob {
+    position: absolute; border-radius: 50%;
+    filter: blur(80px); opacity: 0.12; pointer-events: none; z-index: 0;
+  }
+  .slide > *:not(.blob) { position: relative; z-index: 1; }
+
+  /* ── Print ── */
+  @media print {
+    .nav { display: none; }
+    .slides { margin-top: 0; }
+    .slide { page-break-after: always; min-height: 100vh; }
+    body { background: #fff; }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .slide { padding: 48px 32px; }
+    .grid-2, .grid-3, .grid-4, .grid-60-40, .grid-40-60 { grid-template-columns: 1fr; }
+    .roadmap { grid-template-columns: 1fr 1fr; }
+    .roadmap::before { display: none; }
+    .title-visual { display: none; }
+    .ai-flow { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav">
+  <span class="nav-brand">Colibri Data Zone &mdash; Executive Briefing</span>
+  <div class="nav-links">
+    <a href="#slide-1">Title</a>
+    <a href="#slide-2">Problem</a>
+    <a href="#slide-3">Solution</a>
+    <a href="#slide-4">Architecture</a>
+    <a href="#slide-5">Capabilities</a>
+    <a href="#slide-6">Benefits</a>
+    <a href="#slide-7">Use Cases</a>
+    <a href="#slide-8">Comparison</a>
+    <a href="#slide-9">Why Us</a>
+    <a href="#slide-10">AI Strategy</a>
+    <a href="#slide-11">Roadmap</a>
+    <a href="#slide-12">Next Steps</a>
+  </div>
+</nav>
+
+<div class="slides">
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 1 — TITLE
+════════════════════════════════════════════════ -->
+<section class="slide" id="slide-1" style="background:linear-gradient(145deg,#061828 0%,#0D1B2A 55%,#0A3344 100%);color:#fff;padding:80px 100px;justify-content:center;min-height:100vh;">
+
+  <div class="blob" style="width:600px;height:600px;background:var(--teal);top:-150px;right:-150px;"></div>
+  <div class="blob" style="width:400px;height:400px;background:var(--gold);bottom:-100px;left:-100px;"></div>
+
+  <div style="max-width:700px;">
+    <div class="title-badge">Confidential — C-Level Briefing &nbsp;|&nbsp; March 2026</div>
+
+    <h1 class="title-main" style="font-size:clamp(44px,5.5vw,72px);line-height:1.05;margin-bottom:16px;">
+      Colibri <span style="color:var(--gold2);">Data Zone</span>
+    </h1>
+
+    <p style="font-size:clamp(18px,2vw,26px);opacity:0.6;font-weight:300;margin-bottom:48px;">
+      An Enterprise Data Governance Portal<br>
+      Built for Colibri Group
+    </p>
+
+    <p class="body-lg" style="opacity:0.75;max-width:560px;margin-bottom:56px;font-weight:300;">
+      One place to <strong style="color:var(--teal2);">discover</strong>,
+      <strong style="color:var(--gold2);">govern</strong>, and
+      <strong style="color:#9DD6D6;">trace</strong> data from source systems to the warehouse —
+      the foundation for trustworthy analytics and AI.
+    </p>
+
+    <div class="title-meta">
+      <div class="title-meta-item">
+        <strong>Colibri Group</strong>
+        Organization
+      </div>
+      <div style="width:1px;height:40px;background:rgba(255,255,255,0.15);"></div>
+      <div class="title-meta-item">
+        <strong>March 2026</strong>
+        Presentation Date
+      </div>
+      <div style="width:1px;height:40px;background:rgba(255,255,255,0.15);"></div>
+      <div class="title-meta-item">
+        <strong>Confidential</strong>
+        Distribution
+      </div>
+    </div>
+  </div>
+
+  <!-- Decorative visual -->
+  <div style="position:absolute;right:80px;top:50%;transform:translateY(-50%);opacity:0.9;">
+    <svg width="300" height="300" viewBox="0 0 300 300">
+      <circle cx="150" cy="150" r="140" fill="none" stroke="rgba(10,126,126,0.3)" stroke-width="1"/>
+      <circle cx="150" cy="150" r="100" fill="none" stroke="rgba(10,126,126,0.2)" stroke-width="1"/>
+      <circle cx="150" cy="150" r="60" fill="rgba(10,126,126,0.15)" stroke="rgba(10,126,126,0.4)" stroke-width="1.5"/>
+      <text x="150" y="162" text-anchor="middle" font-size="48" fill="rgba(178,224,224,0.9)">🏛</text>
+      <!-- orbiting dots -->
+      <circle cx="150" cy="10" r="6" fill="var(--teal2)" opacity="0.8"/>
+      <circle cx="290" cy="150" r="5" fill="var(--gold2)" opacity="0.8"/>
+      <circle cx="150" cy="290" r="6" fill="var(--teal2)" opacity="0.8"/>
+      <circle cx="10" cy="150" r="5" fill="var(--gold2)" opacity="0.8"/>
+      <line x1="150" y1="10" x2="150" y2="90" stroke="rgba(10,126,126,0.3)" stroke-width="1" stroke-dasharray="4"/>
+      <line x1="290" y1="150" x2="210" y2="150" stroke="rgba(10,126,126,0.3)" stroke-width="1" stroke-dasharray="4"/>
+      <line x1="150" y1="290" x2="150" y2="210" stroke="rgba(10,126,126,0.3)" stroke-width="1" stroke-dasharray="4"/>
+      <line x1="10" y1="150" x2="90" y2="150" stroke="rgba(10,126,126,0.3)" stroke-width="1" stroke-dasharray="4"/>
+    </svg>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 2 — THE PROBLEM
+════════════════════════════════════════════════ -->
+<section class="slide slide-light" id="slide-2">
+  <div class="slide-header">
+    <div class="slide-number">01 — The Problem</div>
+    <h2>Why Data Governance Can't Wait</h2>
+    <div class="divider"></div>
+    <p class="body-lg" style="max-width:750px;color:#374151;">
+      As Colibri Group scales, fragmented metadata and uncontrolled data access have become operational and compliance risks that directly slow down analytics, AI adoption, and decision-making.
+    </p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div class="challenge-row">
+      <div class="challenge-label">🗂 Fragmented Metadata</div>
+      <div class="challenge-impact">Data definitions, ownership, and business rules live in spreadsheets, wikis, and tribal knowledge — causing conflicting reports and eroded trust.</div>
+    </div>
+    <div class="challenge-row">
+      <div class="challenge-label">🔐 Inconsistent Access</div>
+      <div class="challenge-impact">No single view of who can access what. Audit requests require manual reconstruction across multiple systems with no auditability.</div>
+    </div>
+    <div class="challenge-row">
+      <div class="challenge-label">🔍 No Lineage Visibility</div>
+      <div class="challenge-impact">When a report number looks wrong, root-cause analysis is manual and time-consuming. There is no automated path from output back to source.</div>
+    </div>
+    <div class="challenge-row">
+      <div class="challenge-label">📦 Duplicated Assets</div>
+      <div class="challenge-impact">Multiple copies of datasets exist across teams without clear provenance, increasing costs and the risk of decisions made on stale data.</div>
+    </div>
+    <div class="challenge-row" style="grid-column:1/-1;">
+      <div class="challenge-label" style="background:var(--danger);">⚠️ Compliance Exposure</div>
+      <div class="challenge-impact">Without centralized governance, demonstrating regulatory compliance requires manual, error-prone exercises consuming significant legal and stewardship resources.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:32px;padding:20px 28px;background:linear-gradient(90deg,rgba(10,126,126,0.08),transparent);border-left:4px solid var(--teal);border-radius:0 10px 10px 0;">
+    <p class="body-lg" style="color:var(--navy);font-style:italic;">
+      "Without proper governance, even the most advanced analytics tools will produce unreliable, inconsistent, or unauthorized outputs."
+    </p>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 3 — THE SOLUTION
+════════════════════════════════════════════════ -->
+<section class="slide slide-accent" id="slide-3">
+  <div class="blob" style="width:500px;height:500px;background:var(--teal);top:-100px;right:-100px;"></div>
+
+  <div class="slide-header">
+    <div class="slide-number" style="color:rgba(255,255,255,0.5);">02 — The Solution</div>
+    <h2>Introducing Colibri Data Zone</h2>
+    <div class="divider divider-white"></div>
+    <p class="body-lg" style="max-width:700px;opacity:0.8;">
+      A purpose-built data governance portal — inspired by AWS DataZone architecture, tailored to the Colibri Group operating environment — that provides the governance foundation for trusted analytics and AI.
+    </p>
+  </div>
+
+  <div class="grid-3" style="margin-top:8px;">
+    <div class="card">
+      <div class="card-icon">🔎</div>
+      <h4>Self-Service Discovery</h4>
+      <p>A searchable, governed catalog of all data assets across business domains. Business users find trusted data in minutes, not hours.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏛</div>
+      <h4>Federated Governance</h4>
+      <p>Domain-based model maps to business units. Each domain owns its assets, policies, and glossary — with enterprise-wide visibility maintained centrally.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔗</div>
+      <h4>End-to-End Lineage</h4>
+      <p>Automated tracking via dbt manifest parsing, from OLTP source systems through Fivetran ingestion and dbt transformations to Redshift.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📜</div>
+      <h4>Business Glossary</h4>
+      <p>A shared vocabulary of terms, definitions, and synonyms that ensures consistent interpretation across all technical and business users — including AI agents.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔐</div>
+      <h4>Governed Access</h4>
+      <p>Role-based access controls with publish-subscribe workflows. Every access decision is documented, auditable, and revocable.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <h4>AI-Ready Foundation</h4>
+      <p>The semantic layer, access controls, and governed catalog that Conversational AI agents need to return accurate, authorized, trusted results.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 4 — ARCHITECTURE
+════════════════════════════════════════════════ -->
+<section class="slide slide-white" id="slide-4">
+  <div class="slide-header">
+    <div class="slide-number">03 — Architecture</div>
+    <h2>Built for Our Stack. Deployed in Our Environment.</h2>
+    <div class="divider"></div>
+  </div>
+
+  <div class="grid-60-40">
+    <!-- Architecture layers -->
+    <div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+          <div style="background:var(--navy);color:#fff;padding:10px 20px;font-weight:700;font-size:13px;letter-spacing:0.06em;">PRESENTATION LAYER</div>
+          <div style="background:#EFF6FF;padding:14px 20px;font-size:13px;color:#1E40AF;">React 18 + TypeScript browser portal — search, catalog, lineage visualization, governance admin</div>
+        </div>
+        <div style="border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+          <div style="background:var(--teal);color:#fff;padding:10px 20px;font-weight:700;font-size:13px;letter-spacing:0.06em;">SERVICE LAYER</div>
+          <div style="background:#F0FDFA;padding:14px 20px;font-size:13px;color:#065F46;">Node.js/Express REST API — catalog ops, access management, glossary, lineage computation, workflow orchestration</div>
+        </div>
+        <div style="border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+          <div style="background:var(--gold);color:#fff;padding:10px 20px;font-weight:700;font-size:13px;letter-spacing:0.06em;">INTEGRATION LAYER</div>
+          <div style="background:#FFFBEB;padding:14px 20px;font-size:13px;color:#92400E;">Connectors to Redshift, S3, dbt manifest/catalog, Fivetran, identity providers — metadata sync + lineage graphs</div>
+        </div>
+        <div style="border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+          <div style="background:var(--navy2);color:#fff;padding:10px 20px;font-weight:700;font-size:13px;letter-spacing:0.06em;">DATA LAYER</div>
+          <div style="background:#F8FAFC;padding:14px 20px;font-size:13px;color:#374151;">AWS DynamoDB (single-table design) — metadata store, policy engine, audit log, lineage graph persistence</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key architecture facts -->
+    <div>
+      <h3 style="font-size:17px;margin-bottom:20px;color:var(--navy);">Technology Stack</h3>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="card-light" style="display:flex;gap:16px;align-items:center;">
+          <div style="font-size:26px;">⚛️</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;">React 18 + Vite + TypeScript</div>
+            <div style="font-size:12px;color:var(--gray);">TanStack Query, React Flow, Tailwind CSS</div>
+          </div>
+        </div>
+        <div class="card-light" style="display:flex;gap:16px;align-items:center;">
+          <div style="font-size:26px;">🟩</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;">Node.js / Express / TypeScript</div>
+            <div style="font-size:12px;color:var(--gray);">JWT auth, role-based access middleware</div>
+          </div>
+        </div>
+        <div class="card-light" style="display:flex;gap:16px;align-items:center;">
+          <div style="font-size:26px;">🗄</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;">AWS DynamoDB</div>
+            <div style="font-size:12px;color:var(--gray);">Single-table design, PITR, SSE, pay-per-request</div>
+          </div>
+        </div>
+        <div class="card-light" style="display:flex;gap:16px;align-items:center;">
+          <div style="font-size:26px;">☁️</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;">AWS ECS Fargate + ALB</div>
+            <div style="font-size:12px;color:var(--gray);">Containerized; Docker Compose for local dev</div>
+          </div>
+        </div>
+        <div class="card-light" style="display:flex;gap:16px;align-items:center;">
+          <div style="font-size:26px;">🔧</div>
+          <div>
+            <div style="font-weight:700;font-size:14px;">dbt Integration</div>
+            <div style="font-size:12px;color:var(--gray);">Parses manifest.json + catalog.json for lineage DAG</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 5 — CAPABILITIES
+════════════════════════════════════════════════ -->
+<section class="slide slide-dark" id="slide-5">
+  <div class="blob" style="width:600px;height:600px;background:var(--teal);bottom:-200px;right:-200px;"></div>
+
+  <div class="slide-header">
+    <div class="slide-number" style="color:rgba(255,255,255,0.5);">04 — Platform Capabilities</div>
+    <h2>What Colibri Data Zone Does Today</h2>
+    <div class="divider"></div>
+  </div>
+
+  <div class="grid-3" style="gap:20px;">
+    <div class="card" style="border-left:4px solid var(--teal2);">
+      <div class="card-icon">📚</div>
+      <h4>Data Catalog</h4>
+      <p>Register, search, browse, and govern data assets across all domains. Grid/list views, sensitivity tagging, schema documentation, and bulk Excel upload.</p>
+      <div style="margin-top:10px;"><span class="badge badge-green">Live</span></div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--teal2);">
+      <div class="card-icon">🏢</div>
+      <h4>Domain Management</h4>
+      <p>Hierarchical business domain structure with owners, stewards, and tags. Finance, Marketing, Engineering, LMS, Sales, and more.</p>
+      <div style="margin-top:10px;"><span class="badge badge-green">Live</span></div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--teal2);">
+      <div class="card-icon">📖</div>
+      <h4>Business Glossary</h4>
+      <p>Shared definitions, synonyms, and related terms linked directly to catalog assets. The semantic layer for AI and analytics alike.</p>
+      <div style="margin-top:10px;"><span class="badge badge-green">Live</span></div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--gold);">
+      <div class="card-icon">🕸</div>
+      <h4>Data Lineage Engine</h4>
+      <p>Interactive dbt lineage graph from manifest.json. Manual asset-to-asset lineage. Upstream/downstream impact analysis with configurable depth traversal.</p>
+      <div style="margin-top:10px;"><span class="badge badge-green">Live</span></div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--gold);">
+      <div class="card-icon">🗂</div>
+      <h4>Source Table Catalog</h4>
+      <p>PM persona for OLTP-to-Redshift ingestion lifecycle. Tracks ColibriLMS, Salesforce, NetSuite, HubSpot, Zendesk, and ColibriPlatform tables with ingestion status.</p>
+      <div style="margin-top:10px;"><span class="badge badge-green">Live</span></div>
+    </div>
+    <div class="card" style="border-left:4px solid var(--gold2);">
+      <div class="card-icon">🧬</div>
+      <h4>Ontology Layer</h4>
+      <p>Column-level descriptions, enhanced definitions, and ontology class for all dbt model columns. Bulk upload via CSV/Excel with upsert semantics.</p>
+      <div style="margin-top:10px;"><span class="badge badge-green">Live</span></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 6 — BUSINESS BENEFITS
+════════════════════════════════════════════════ -->
+<section class="slide slide-light" id="slide-6">
+  <div class="slide-header">
+    <div class="slide-number">05 — Business Benefits</div>
+    <h2>Measurable Value Across Three Dimensions</h2>
+    <div class="divider"></div>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:32px;">
+    <div class="pillar">
+      <div style="font-size:32px;margin-bottom:12px;">⚡</div>
+      <h3>Operational Efficiency</h3>
+      <ul>
+        <li>Eliminate ad hoc data access requests and manual provisioning</li>
+        <li>Reduce time to find the right data from hours to minutes</li>
+        <li>Streamline onboarding for new analysts and business users</li>
+        <li>Bulk upload workflows replace one-by-one data entry</li>
+        <li>Self-service analytics without engineering tickets</li>
+      </ul>
+    </div>
+    <div class="pillar gold-top">
+      <div style="font-size:32px;margin-bottom:12px;">🏅</div>
+      <h3>Trust &amp; Quality</h3>
+      <ul>
+        <li>Single source of truth for all data definitions and business terms</li>
+        <li>Sensitivity classification for every asset — Public to Restricted</li>
+        <li>Lineage visibility enables rapid root-cause analysis</li>
+        <li>Freshness and ownership indicators build data confidence</li>
+        <li>Quality scores surface trusted versus unreliable datasets</li>
+      </ul>
+    </div>
+    <div class="pillar navy-top">
+      <div style="font-size:32px;margin-bottom:12px;">🚀</div>
+      <h3>Strategic Enablement</h3>
+      <ul>
+        <li>Foundation for Conversational AI over governed, trusted data</li>
+        <li>Federated model aligned to business unit autonomy</li>
+        <li>Audit-ready compliance without manual reconstruction</li>
+        <li>Positions Colibri Group for scalable, compliant data growth</li>
+        <li>No vendor lock-in; full deployment control</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Key stats -->
+  <div class="grid-4">
+    <div class="stat-card" style="background:rgba(10,126,126,0.08);border:1px solid rgba(10,126,126,0.2);">
+      <div class="stat-value" style="color:var(--teal);">0</div>
+      <div class="stat-label" style="color:var(--navy);">Per-User Licensing Costs</div>
+    </div>
+    <div class="stat-card" style="background:rgba(10,126,126,0.08);border:1px solid rgba(10,126,126,0.2);">
+      <div class="stat-value" style="color:var(--teal);">Weeks</div>
+      <div class="stat-label" style="color:var(--navy);">vs. Months for Commercial Tools</div>
+    </div>
+    <div class="stat-card" style="background:rgba(10,126,126,0.08);border:1px solid rgba(10,126,126,0.2);">
+      <div class="stat-value" style="color:var(--teal);">6</div>
+      <div class="stat-label" style="color:var(--navy);">User Roles — from Viewer to Admin</div>
+    </div>
+    <div class="stat-card" style="background:rgba(10,126,126,0.08);border:1px solid rgba(10,126,126,0.2);">
+      <div class="stat-value" style="color:var(--teal);">Full</div>
+      <div class="stat-label" style="color:var(--navy);">Deployment &amp; Data Control</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 7 — USE CASES
+════════════════════════════════════════════════ -->
+<section class="slide slide-accent" id="slide-7">
+  <div class="blob" style="width:500px;height:500px;background:var(--gold);top:-100px;left:-150px;"></div>
+
+  <div class="slide-header">
+    <div class="slide-number" style="color:rgba(255,255,255,0.5);">06 — Use Cases</div>
+    <h2>Five Critical Business Scenarios Enabled</h2>
+    <div class="divider"></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="card" style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.12);">
+      <div style="display:flex;align-items:flex-start;gap:16px;">
+        <div style="font-size:32px;flex-shrink:0;">🔎</div>
+        <div>
+          <h4 style="font-size:15px;margin-bottom:8px;color:var(--gold2);">1. Self-Service Data Discovery</h4>
+          <p style="font-size:13px;opacity:0.8;">Business users search the portal to find trusted, governed datasets without knowing database schemas. Quality scores, ownership, and freshness guide selection.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.12);">
+      <div style="display:flex;align-items:flex-start;gap:16px;">
+        <div style="font-size:32px;flex-shrink:0;">🤝</div>
+        <div>
+          <h4 style="font-size:15px;margin-bottom:8px;color:var(--gold2);">2. Governed Data Sharing Across BUs</h4>
+          <p style="font-size:13px;opacity:0.8;">Data producers publish curated data products. Other business units discover and subscribe via documented, auditable, revocable workflows — replacing ad hoc exports and grants.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.12);">
+      <div style="display:flex;align-items:flex-start;gap:16px;">
+        <div style="font-size:32px;flex-shrink:0;">🤖</div>
+        <div>
+          <h4 style="font-size:15px;margin-bottom:8px;color:var(--gold2);">3. Conversational AI Governance Layer</h4>
+          <p style="font-size:13px;opacity:0.8;">The glossary ensures AI interprets terms correctly; the catalog defines approved datasets; access policies ensure AI respects permissions — making AI analytics trustworthy.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.12);">
+      <div style="display:flex;align-items:flex-start;gap:16px;">
+        <div style="font-size:32px;flex-shrink:0;">🔭</div>
+        <div>
+          <h4 style="font-size:15px;margin-bottom:8px;color:var(--gold2);">4. Impact Analysis &amp; Change Management</h4>
+          <p style="font-size:13px;opacity:0.8;">Before schema changes or model deprecation, lineage reveals full downstream impact — preventing accidental breakage of dashboards, reports, and AI agents.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="background:rgba(255,255,255,0.07);border-color:rgba(255,255,255,0.12);grid-column:1/-1;">
+      <div style="display:flex;align-items:flex-start;gap:16px;">
+        <div style="font-size:32px;flex-shrink:0;">📋</div>
+        <div>
+          <h4 style="font-size:15px;margin-bottom:8px;color:var(--gold2);">5. Compliance &amp; Audit Readiness</h4>
+          <p style="font-size:13px;opacity:0.8;">A complete, queryable audit trail of who accessed what data, when, and for what purpose. Regulatory evidence is produced from the portal — not reconstructed manually from fragmented sources across teams.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 8 — COMPETITIVE COMPARISON
+════════════════════════════════════════════════ -->
+<section class="slide slide-white" id="slide-8">
+  <div class="slide-header">
+    <div class="slide-number">07 — Market Comparison</div>
+    <h2>How We Compare to Market Alternatives</h2>
+    <div class="divider"></div>
+    <p style="font-size:14px;color:var(--gray);margin-top:-16px;">Evaluated: AWS DataZone, Collibra, Alation, Atlan</p>
+  </div>
+
+  <table class="comp-table">
+    <thead>
+      <tr>
+        <th>Capability</th>
+        <th class="col-highlight">Colibri Data Zone</th>
+        <th>AWS DataZone</th>
+        <th>Collibra</th>
+        <th>Alation</th>
+        <th>Atlan</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Data Catalog</td>
+        <td class="col-highlight"><span class="yes">✓</span></td>
+        <td><span class="yes">✓</span></td>
+        <td><span class="yes">✓</span></td>
+        <td><span class="yes">✓</span></td>
+        <td><span class="yes">✓</span></td>
+      </tr>
+      <tr>
+        <td>Business Glossary</td>
+        <td class="col-highlight"><span class="yes">✓</span></td>
+        <td><span class="yes">✓</span></td>
+        <td><span class="yes">✓</span></td>
+        <td><span class="yes">✓</span></td>
+        <td><span class="yes">✓</span></td>
+      </tr>
+      <tr>
+        <td>Data Lineage (dbt-native)</td>
+        <td class="col-highlight"><span class="yes">✓</span></td>
+        <td><span class="partial">Partial</span></td>
+        <td><span class="partial">Connector</span></td>
+        <td><span class="no">Limited</span></td>
+        <td><span class="yes">✓</span></td>
+      </tr>
+      <tr>
+        <td>Access Request Workflows</td>
+        <td class="col-highlight"><span class="yes">✓</span></td>
+        <td><span class="yes">✓</span></td>
+        <td><span class="yes">✓</span></td>
+        <td><span class="no">Limited</span></td>
+        <td><span class="yes">✓</span></td>
+      </tr>
+      <tr>
+        <td>Custom-Built for Our Stack</td>
+        <td class="col-highlight"><span class="yes">✓</span></td>
+        <td><span class="no">✗</span></td>
+        <td><span class="no">✗</span></td>
+        <td><span class="no">✗</span></td>
+        <td><span class="no">✗</span></td>
+      </tr>
+      <tr>
+        <td>Redshift-Native Integration</td>
+        <td class="col-highlight" style="font-weight:700;">Deep</td>
+        <td style="font-weight:700;">Deep</td>
+        <td>Connector</td>
+        <td>Connector</td>
+        <td>Connector</td>
+      </tr>
+      <tr>
+        <td>Per-User Licensing</td>
+        <td class="col-highlight"><span class="cost-low">None</span></td>
+        <td><span class="cost-med">Usage-Based</span></td>
+        <td><span class="cost-high">Enterprise</span></td>
+        <td><span class="cost-high">Enterprise</span></td>
+        <td><span class="cost-med">Enterprise</span></td>
+      </tr>
+      <tr>
+        <td>Deployment Control</td>
+        <td class="col-highlight"><span class="cost-low">Full</span></td>
+        <td>AWS Only</td>
+        <td>SaaS</td>
+        <td>SaaS</td>
+        <td>SaaS Only</td>
+      </tr>
+      <tr>
+        <td>Implementation Timeline</td>
+        <td class="col-highlight"><span class="cost-low">Weeks ✓</span></td>
+        <td>Weeks</td>
+        <td><span class="cost-high">6-12 Months</span></td>
+        <td><span class="cost-high">Months</span></td>
+        <td><span class="cost-med">Months</span></td>
+      </tr>
+      <tr>
+        <td>Ongoing Cost</td>
+        <td class="col-highlight"><span class="cost-low">Low</span></td>
+        <td><span class="cost-med">Moderate</span></td>
+        <td><span class="cost-high">High</span></td>
+        <td><span class="cost-high">High</span></td>
+        <td><span class="cost-med">Moderate</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 9 — WHY COLIBRI DATA ZONE
+════════════════════════════════════════════════ -->
+<section class="slide slide-dark" id="slide-9">
+  <div class="blob" style="width:600px;height:600px;background:var(--teal);bottom:-150px;right:-150px;"></div>
+
+  <div class="slide-header">
+    <div class="slide-number" style="color:rgba(255,255,255,0.5);">08 — Our Advantage</div>
+    <h2>Why Colibri Data Zone Is the Right Choice</h2>
+    <div class="divider"></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+    <div class="why-row">
+      <div class="why-icon">🎯</div>
+      <div class="why-text">
+        <h4>Tailored to Our Stack</h4>
+        <p>Built specifically for our Redshift-centric architecture and dbt transformation layer. No connector complexity, no impedance mismatch with generic platforms.</p>
+      </div>
+    </div>
+    <div class="why-row">
+      <div class="why-icon">💰</div>
+      <div class="why-text">
+        <h4>Zero Per-User Licensing</h4>
+        <p>Critical for data democratization. Every leader and business user can access governed data without costs scaling linearly with organizational adoption.</p>
+      </div>
+    </div>
+    <div class="why-row">
+      <div class="why-icon">🏗</div>
+      <div class="why-text">
+        <h4>Proven Architectural Patterns</h4>
+        <p>Modeled on AWS DataZone's battle-tested design (domains, data products, publish-subscribe) — without the constraints or lock-in of a managed AWS service.</p>
+      </div>
+    </div>
+    <div class="why-row">
+      <div class="why-icon">🎛</div>
+      <div class="why-text">
+        <h4>Full Customization Control</h4>
+        <p>We adapt governance policies, organizational structure, and UX to our exact needs. No off-the-shelf product allows this degree of tailoring.</p>
+      </div>
+    </div>
+    <div class="why-row">
+      <div class="why-icon">⚡</div>
+      <div class="why-text">
+        <h4>Rapid Time to Value</h4>
+        <p>Already built and deployed — iterative enhancements take weeks, not the 6-12 months required by commercial governance platforms like Collibra.</p>
+      </div>
+    </div>
+    <div class="why-row">
+      <div class="why-icon">🤖</div>
+      <div class="why-text">
+        <h4>Direct AI Strategy Synergy</h4>
+        <p>The governance portal directly feeds the Conversational AI strategy by providing semantic context, access controls, and the trusted data catalog AI agents need to deliver reliable, authorized results.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 10 — AI STRATEGY CONNECTION
+════════════════════════════════════════════════ -->
+<section class="slide slide-light" id="slide-10">
+  <div class="slide-header">
+    <div class="slide-number">09 — Strategic Context</div>
+    <h2>Governance Enables Trustworthy Conversational AI</h2>
+    <div class="divider"></div>
+    <p class="body-lg" style="max-width:720px;color:#374151;">
+      Colibri Data Zone and Conversational AI are <strong>complementary investments</strong>. The governance portal ensures that the data AI queries is trusted, well-defined, and properly permissioned. Without governance, conversational AI risks returning inaccurate or unauthorized results.
+    </p>
+  </div>
+
+  <div class="ai-flow" style="margin:36px 0;">
+    <div class="ai-node active">
+      <div class="ai-node-icon">🗄</div>
+      <h4>Source Systems</h4>
+      <p>ColibriLMS, Salesforce, NetSuite, HubSpot</p>
+    </div>
+    <div class="ai-arrow">→</div>
+    <div class="ai-node">
+      <div class="ai-node-icon">🔧</div>
+      <h4>dbt + Redshift</h4>
+      <p>Transformed, governed warehouse models</p>
+    </div>
+    <div class="ai-arrow">→</div>
+    <div class="ai-node highlight" style="border-color:var(--teal);">
+      <div class="ai-node-icon">🏛</div>
+      <h4>Colibri Data Zone</h4>
+      <p>Catalog · Glossary · Lineage · Access policies</p>
+    </div>
+    <div class="ai-arrow">→</div>
+    <div class="ai-node">
+      <div class="ai-node-icon">🤖</div>
+      <h4>AI Analytics Agent</h4>
+      <p>Conversational queries over governed data</p>
+    </div>
+    <div class="ai-arrow">→</div>
+    <div class="ai-node active">
+      <div class="ai-node-icon">📊</div>
+      <h4>Business Leaders</h4>
+      <p>Trusted, authorized, accurate insights</p>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card-light" style="border-top:4px solid var(--teal);">
+      <div style="font-size:24px;margin-bottom:10px;">📖</div>
+      <h4 style="font-size:15px;margin-bottom:8px;">Semantic Accuracy</h4>
+      <p style="font-size:13px;color:var(--gray);">Business glossary ensures AI interprets "Revenue", "Churn Rate", and "Customer" consistently with organizational definitions — not its training data defaults.</p>
+    </div>
+    <div class="card-light" style="border-top:4px solid var(--gold);">
+      <div style="font-size:24px;margin-bottom:10px;">🔐</div>
+      <h4 style="font-size:15px;margin-bottom:8px;">Authorized Access</h4>
+      <p style="font-size:13px;color:var(--gray);">Access control policies in the governance portal govern which datasets the AI agent can query — ensuring sensitive data is never surfaced to unauthorized users.</p>
+    </div>
+    <div class="card-light" style="border-top:4px solid var(--navy);">
+      <div style="font-size:24px;margin-bottom:10px;">✅</div>
+      <h4 style="font-size:15px;margin-bottom:8px;">Trusted Data Foundation</h4>
+      <p style="font-size:13px;color:var(--gray);">Only catalog-registered, steward-approved datasets are surfaced to the AI — eliminating the risk of AI answers based on stale, duplicate, or ungoverned data.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 11 — ROADMAP
+════════════════════════════════════════════════ -->
+<section class="slide slide-white" id="slide-11">
+  <div class="slide-header">
+    <div class="slide-number">10 — Implementation Roadmap</div>
+    <h2>A Phased Path to Enterprise-Wide Governance</h2>
+    <div class="divider"></div>
+    <p style="font-size:14px;color:var(--gray);">Four phases — from foundational catalog to AI-integrated, enterprise-scale governance</p>
+  </div>
+
+  <div class="roadmap" style="margin-bottom:40px;">
+    <div class="phase">
+      <div class="phase-dot">1</div>
+      <div class="phase-label">Phase 1</div>
+      <div class="phase-title">Foundation</div>
+      <ul class="phase-items">
+        <li>Onboard governance domains</li>
+        <li>Catalog priority Redshift datasets</li>
+        <li>Populate business glossary</li>
+        <li>Assign data owners &amp; stewards</li>
+      </ul>
+      <div style="margin-top:12px;padding:10px;background:rgba(10,126,126,0.07);border-radius:8px;font-size:12px;color:var(--teal);font-weight:600;">
+        Outcome: Searchable governed catalog for priority assets
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-dot ph2">2</div>
+      <div class="phase-label" style="color:var(--teal2);">Phase 2</div>
+      <div class="phase-title">Access Governance</div>
+      <ul class="phase-items">
+        <li>Enable publish-subscribe workflows</li>
+        <li>Integrate SSO identity provider</li>
+        <li>Enforce role-based access</li>
+        <li>Begin audit trail tracking</li>
+      </ul>
+      <div style="margin-top:12px;padding:10px;background:rgba(13,155,155,0.07);border-radius:8px;font-size:12px;color:var(--teal2);font-weight:600;">
+        Outcome: Governed, auditable data sharing
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-dot ph3">3</div>
+      <div class="phase-label" style="color:var(--gold);">Phase 3</div>
+      <div class="phase-title">AI Integration</div>
+      <ul class="phase-items">
+        <li>Connect catalog to AI agents</li>
+        <li>AI respects access policies</li>
+        <li>Glossary-aligned AI term resolution</li>
+        <li>AI lineage audit capabilities</li>
+      </ul>
+      <div style="margin-top:12px;padding:10px;background:rgba(232,168,53,0.07);border-radius:8px;font-size:12px;color:#B87B0A;font-weight:600;">
+        Outcome: AI analytics on governed, trusted data
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-dot ph4">4</div>
+      <div class="phase-label" style="color:var(--navy2);">Phase 4</div>
+      <div class="phase-title">Scale &amp; Mature</div>
+      <ul class="phase-items">
+        <li>Expand to all business units</li>
+        <li>Activate full lineage tracking</li>
+        <li>Data quality scoring</li>
+        <li>Stewardship processes &amp; SLAs</li>
+      </ul>
+      <div style="margin-top:12px;padding:10px;background:rgba(13,27,42,0.06);border-radius:8px;font-size:12px;color:var(--navy2);font-weight:600;">
+        Outcome: Enterprise-wide governance &amp; compliance
+      </div>
+    </div>
+  </div>
+
+  <div style="background:linear-gradient(90deg,rgba(10,126,126,0.08),transparent);border-left:4px solid var(--teal);border-radius:0 10px 10px 0;padding:18px 28px;">
+    <p style="font-size:14px;color:var(--navy);">
+      <strong>Current Status:</strong> &nbsp;Phase 1 infrastructure is complete and operational. All core entities (Assets, Domains, Glossary, Ontology, Lineage) are implemented with full CRUD APIs, role-based access, dbt lineage, and bulk upload workflows. Ready for Phase 2 enablement.
+    </p>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 12 — NEXT STEPS / CTA
+════════════════════════════════════════════════ -->
+<section class="slide slide-dark" id="slide-12">
+  <div class="blob" style="width:700px;height:700px;background:var(--teal);top:-200px;right:-200px;"></div>
+  <div class="blob" style="width:400px;height:400px;background:var(--gold);bottom:-100px;left:-100px;"></div>
+
+  <div class="slide-header">
+    <div class="slide-number" style="color:rgba(255,255,255,0.5);">11 — Recommended Next Steps</div>
+    <h2>What We Are Asking For</h2>
+    <div class="divider"></div>
+    <p class="body-lg" style="max-width:700px;opacity:0.75;">
+      Colibri Data Zone is operational and ready to scale. The following decisions and investments will accelerate our path to enterprise-wide data governance and AI-readiness.
+    </p>
+  </div>
+
+  <div class="cta-grid">
+    <div class="cta-item">
+      <h4>✅ Endorse the Platform</h4>
+      <p>Executive endorsement of Colibri Data Zone as the organization's official data governance standard — signaling organizational commitment and driving adoption across business units.</p>
+    </div>
+    <div class="cta-item">
+      <h4>👥 Appoint Domain Stewards</h4>
+      <p>Identify and formally appoint Data Owners and Data Stewards within each business domain. Governance only works when ownership is clear and accountable.</p>
+    </div>
+    <div class="cta-item">
+      <h4>📋 Prioritize the Catalog Backfill</h4>
+      <p>Allocate stewardship time to catalog the first 50-100 priority Redshift datasets, ensuring the catalog reflects the most-used, most-impactful data assets across the organization.</p>
+    </div>
+    <div class="cta-item">
+      <h4>🤖 Align with AI Roadmap</h4>
+      <p>Formally connect the data governance roadmap to the Conversational AI strategy. Ensure Phase 3 (AI Integration) is scoped into the AI agent development timeline.</p>
+    </div>
+  </div>
+
+  <div style="margin-top:36px;padding:24px 32px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:14px;text-align:center;">
+    <p style="font-size:20px;font-weight:700;margin-bottom:8px;">
+      Governance is not a constraint on innovation —
+    </p>
+    <p style="font-size:20px;font-weight:700;color:var(--gold2);">
+      it is the foundation that makes innovation trustworthy.
+    </p>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════
+     SLIDE 13 — CLOSING
+════════════════════════════════════════════════ -->
+<section class="slide" id="slide-13" style="background:linear-gradient(145deg,#061828 0%,#0D1B2A 55%,#0A3344 100%);color:#fff;text-align:center;justify-content:center;align-items:center;">
+  <div class="blob" style="width:700px;height:700px;background:var(--teal);top:-200px;left:50%;transform:translateX(-50%);"></div>
+
+  <div style="position:relative;z-index:2;max-width:800px;margin:0 auto;">
+    <div style="font-size:64px;margin-bottom:24px;">🏛</div>
+    <h1 style="font-size:clamp(36px,4.5vw,56px);margin-bottom:20px;line-height:1.1;">
+      Colibri <span style="color:var(--gold2);">Data Zone</span>
+    </h1>
+    <p style="font-size:20px;opacity:0.65;font-weight:300;margin-bottom:48px;">
+      One place to discover, govern, and trace data from source systems to the warehouse
+    </p>
+
+    <div style="display:flex;justify-content:center;gap:40px;margin-bottom:48px;">
+      <div style="text-align:center;">
+        <div style="font-size:36px;font-weight:800;color:var(--teal2);">7</div>
+        <div style="font-size:12px;opacity:0.6;">Portal Sections</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,0.15);"></div>
+      <div style="text-align:center;">
+        <div style="font-size:36px;font-weight:800;color:var(--gold2);">6</div>
+        <div style="font-size:12px;opacity:0.6;">Role Types</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,0.15);"></div>
+      <div style="text-align:center;">
+        <div style="font-size:36px;font-weight:800;color:var(--teal2);">0</div>
+        <div style="font-size:12px;opacity:0.6;">Licensing Fees</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,0.15);"></div>
+      <div style="text-align:center;">
+        <div style="font-size:36px;font-weight:800;color:var(--gold2);">4</div>
+        <div style="font-size:12px;opacity:0.6;">Roadmap Phases</div>
+      </div>
+    </div>
+
+    <div style="border-top:1px solid rgba(255,255,255,0.12);padding-top:32px;font-size:14px;opacity:0.5;">
+      Colibri Group &nbsp;|&nbsp; March 2026 &nbsp;|&nbsp; Confidential
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- Slide highlight script -->
+<script>
+  const links = document.querySelectorAll('.nav-links a');
+  const slides = document.querySelectorAll('.slide');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting && entry.intersectionRatio > 0.4) {
+        const id = entry.target.id;
+        links.forEach(l => {
+          l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+        });
+      }
+    });
+  }, { threshold: 0.4 });
+
+  slides.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

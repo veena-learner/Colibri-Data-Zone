@@ -4,11 +4,9 @@ import { useSearchParams, Link } from 'react-router-dom';
 import {
   Plus,
   Search,
-  Filter,
   Grid,
   List,
   Database,
-  MoreVertical,
   Upload,
   Download,
   FileSpreadsheet,
@@ -21,8 +19,8 @@ import { SensitivityBadge, AssetTypeBadge, TagBadge } from '../components/ui/Bad
 import { Modal } from '../components/ui/Modal';
 import { PageLoading } from '../components/ui/Loading';
 import { EmptyState } from '../components/ui/EmptyState';
-import { assetsApi, domainsApi, uploadApi, usersApi, BulkUploadResult, UsersByRole } from '../services/api';
-import type { DataAsset, Domain, AssetType, SensitivityLevel, User } from '../types';
+import { assetsApi, domainsApi, uploadApi, usersApi, BulkUploadResult } from '../services/api';
+import type { DataAsset, Domain, AssetType, SensitivityLevel } from '../types';
 
 const ASSET_TYPES: AssetType[] = ['S3', 'Redshift', 'RDS', 'Glue', 'Athena', 'OLTP', 'Other'];
 const SENSITIVITY_LEVELS: SensitivityLevel[] = ['Public', 'Internal', 'Confidential', 'Restricted'];
@@ -38,8 +36,6 @@ export function AssetsPage() {
   const [filterType, setFilterType] = useState<string>('');
   const [filterSensitivity, setFilterSensitivity] = useState<string>('');
   const [localSearch, setLocalSearch] = useState(searchQuery);
-
-  const queryClient = useQueryClient();
 
   const { data: assets, isLoading } = useQuery({
     queryKey: ['assets', searchQuery],

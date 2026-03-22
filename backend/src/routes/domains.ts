@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { body, param } from 'express-validator';
 import { domainModel } from '../models/DomainModel';
+import { assetModel } from '../models/AssetModel';
 import { authMiddleware, AuthRequest, isOwnerOrAdmin } from '../middleware/auth';
 import { validate } from '../middleware/validate';
 
@@ -10,8 +11,17 @@ router.use(authMiddleware);
 
 router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const domains = await domainModel.listAll();
-    res.json({ success: true, data: domains });
+    const [domains, assets] = await Promise.all([domainModel.listAll(), assetModel.listAll()]);
+    const countByDomain = assets.reduce<Record<string, number>>((acc, a) => {
+      const id = a.domainId;
+      if (id) acc[id] = (acc[id] || 0) + 1;
+      return acc;
+    }, {});
+    const data = domains.map((d) => ({
+      ...d,
+      assetCount: countByDomain[d.id] ?? 0,
+    }));
+    res.json({ success: true, data });
   } catch (error) {
     console.error('List domains error:', error);
     res.status(500).json({ success: false, error: 'Failed to list domains' });

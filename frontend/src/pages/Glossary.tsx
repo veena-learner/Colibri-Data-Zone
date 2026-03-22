@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, BookOpen, Search, Edit, Trash2, Link as LinkIcon } from 'lucide-react';
+import { Plus, BookOpen, Search, Edit, Trash2 } from 'lucide-react';
 import { Header } from '../components/Layout/Header';
 import { Card } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';

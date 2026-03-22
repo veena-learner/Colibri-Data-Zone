@@ -51,20 +51,20 @@ export class BaseModel {
       const items = await mockDb.query(pkValue, skPrefix);
       return { items: items as T[] };
     }
-    const params: Parameters<typeof QueryCommand>[0] = {
-      TableName: this.tableName,
-      KeyConditionExpression: skPrefix
-        ? 'PK = :pk AND begins_with(SK, :sk)'
-        : 'PK = :pk',
-      ExpressionAttributeValues: {
-        ':pk': pkValue,
-        ...(skPrefix && { ':sk': skPrefix }),
-      },
-      Limit: limit,
-      ExclusiveStartKey: startKey,
-    };
-
-    const result = await docClient.send(new QueryCommand(params));
+    const result = await docClient.send(
+      new QueryCommand({
+        TableName: this.tableName,
+        KeyConditionExpression: skPrefix
+          ? 'PK = :pk AND begins_with(SK, :sk)'
+          : 'PK = :pk',
+        ExpressionAttributeValues: {
+          ':pk': pkValue,
+          ...(skPrefix && { ':sk': skPrefix }),
+        },
+        Limit: limit,
+        ExclusiveStartKey: startKey,
+      })
+    );
     return {
       items: (result.Items as T[]) || [],
       lastKey: result.LastEvaluatedKey,
@@ -103,22 +103,34 @@ export class BaseModel {
       if (filterExpression && expressionValues) {
         const prefix = expressionValues[':prefix'] as string;
         if (prefix) {
-          items = items.filter((item) => 
+          items = items.filter((item) =>
             item.PK?.startsWith(prefix) || item.SK?.startsWith(prefix)
           );
         }
       }
       return items as T[];
     }
-    const result = await docClient.send(
-      new ScanCommand({
-        TableName: this.tableName,
-        FilterExpression: filterExpression,
-        ExpressionAttributeValues: expressionValues,
-        Limit: limit,
-      })
-    );
-    return (result.Items as T[]) || [];
+    const allItems: T[] = [];
+    let lastKey: Record<string, unknown> | undefined;
+    // When no limit, use a large page size so we get many items per request (DynamoDB 1MB default can return few when using FilterExpression)
+    const pageSize = limit ?? 1000;
+    do {
+      const result = await docClient.send(
+        new ScanCommand({
+          TableName: this.tableName,
+          FilterExpression: filterExpression,
+          ExpressionAttributeValues: expressionValues,
+          Limit: pageSize,
+          ExclusiveStartKey: lastKey,
+        })
+      );
+      const page = (result.Items as T[]) || [];
+      allItems.push(...page);
+      lastKey = result.LastEvaluatedKey;
+      // If caller set a limit, return after first page (respect max items)
+      if (limit != null) break;
+    } while (lastKey);
+    return allItems;
   }
 
   protected async delete(pk: string, sk: string): Promise<void> {
@@ -134,7 +146,7 @@ export class BaseModel {
     );
   }
 
-  protected async update<T>(
+  protected async updateByKey<T>(
     pk: string,
     sk: string,
     updates: Partial<T>

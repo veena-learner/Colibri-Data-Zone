@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
+import { SidebarProvider } from './contexts/SidebarContext';
 import { MainLayout } from './components/Layout/MainLayout';
 import { LoginPage } from './pages/Login';
 import { DashboardPage } from './pages/Dashboard';
@@ -34,7 +35,9 @@ function App() {
         path="/"
         element={
           <ProtectedRoute>
-            <MainLayout />
+            <SidebarProvider>
+              <MainLayout />
+            </SidebarProvider>
           </ProtectedRoute>
         }
       >

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Database, FolderTree, BookOpen, GitBranch, Users, ArrowRight } from 'lucide-react';
+import { Database, FolderTree, BookOpen, GitBranch, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Header } from '../components/Layout/Header';
 import { StatCard, Card } from '../components/ui/Card';

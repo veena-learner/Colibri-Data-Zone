@@ -198,38 +198,57 @@ export function SourceTablesPage() {
             description="Adjust your filters or search criteria"
           />
         ) : (
-          <Card className="overflow-hidden p-0">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="w-8 px-3 py-3" />
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Source Table</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Domain</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Source System</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Domain Owner</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Data Steward</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Sensitivity</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Ingestion Status</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase">Target Redshift</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filtered.map((table) => (
-                  <SourceTableRow
-                    key={table.id}
-                    table={table}
-                    domainName={getDomainName(table.domainId)}
-                    ownerName={getUserName(table.dataOwnerId)}
-                    ownerEmail={getUserEmail(table.dataOwnerId)}
-                    stewardName={getUserName(table.dataStewardId)}
-                    stewardEmail={getUserEmail(table.dataStewardId)}
-                    isExpanded={expandedRow === table.id}
-                    onToggle={() => setExpandedRow(expandedRow === table.id ? null : table.id)}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </Card>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            {/* scroll container: horizontal + vertical; sticky thead works inside this element */}
+            <div className="overflow-x-auto overflow-y-auto max-h-[min(70vh,calc(100vh-18rem))] overscroll-contain touch-pan-x touch-pan-y">
+              <table className="w-full min-w-[1280px] border-collapse">
+                <thead className="sticky top-0 z-20">
+                  <tr className="bg-gray-50 shadow-[inset_0_-1px_0_0_#e5e7eb]">
+                    <th className="sticky top-0 z-30 w-8 px-3 py-3 text-left bg-gray-50" />
+                    <th className="sticky top-0 z-30 text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap bg-gray-50">
+                      Source Table
+                    </th>
+                    <th className="sticky top-0 z-30 text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap bg-gray-50">
+                      Domain
+                    </th>
+                    <th className="sticky top-0 z-30 text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap bg-gray-50">
+                      Source System
+                    </th>
+                    <th className="sticky top-0 z-30 text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap bg-gray-50">
+                      Domain Owner
+                    </th>
+                    <th className="sticky top-0 z-30 text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap bg-gray-50">
+                      Data Steward
+                    </th>
+                    <th className="sticky top-0 z-30 text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap bg-gray-50">
+                      Sensitivity
+                    </th>
+                    <th className="sticky top-0 z-30 text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap bg-gray-50">
+                      Ingestion Status
+                    </th>
+                    <th className="sticky top-0 z-30 text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase whitespace-nowrap bg-gray-50">
+                      Target Redshift
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 bg-white">
+                  {filtered.map((table) => (
+                    <SourceTableRow
+                      key={table.id}
+                      table={table}
+                      domainName={getDomainName(table.domainId)}
+                      ownerName={getUserName(table.dataOwnerId)}
+                      ownerEmail={getUserEmail(table.dataOwnerId)}
+                      stewardName={getUserName(table.dataStewardId)}
+                      stewardEmail={getUserEmail(table.dataStewardId)}
+                      isExpanded={expandedRow === table.id}
+                      onToggle={() => setExpandedRow(expandedRow === table.id ? null : table.id)}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         )}
       </div>
     </div>

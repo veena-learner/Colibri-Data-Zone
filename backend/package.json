@@ -8,6 +8,9 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "seed": "tsx src/scripts/seed.ts",
+    "seed:dynamodb": "tsx src/scripts/seedDynamoDb.ts",
+    "bulk-load-assets": "tsx src/scripts/bulkLoadAssetsFromExcel.ts",
+    "load-dbt-lineage": "tsx src/scripts/loadDbtLineageToDynamoDB.ts",
     "create-table": "tsx src/scripts/createTable.ts"
   },
   "dependencies": {
